@@ -41,5 +41,11 @@ func TestCharVomit_Puke(t *testing.T) {
 		if err == nil {
 			t.Errorf("err was nil for Puke(0)")
 		}
+
+		// Try negative
+		_, err = cv.Puke(-1)
+		if err == nil {
+			t.Errorf("err was nil for Puke(-1)")
+		}
 	}
 }
