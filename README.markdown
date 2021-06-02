@@ -10,4 +10,9 @@ hence the name.
 # To-Do
 * Implement functionality to specify number of duplicate characters
 
+# Installation
+```shell
+go get -v github.com/mojotx/CharVomit
+```
+
 
