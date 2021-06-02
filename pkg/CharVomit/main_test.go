@@ -43,4 +43,3 @@ func TestCharVomit_Puke(t *testing.T) {
 		}
 	}
 }
-
