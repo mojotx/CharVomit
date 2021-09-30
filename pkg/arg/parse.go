@@ -7,12 +7,13 @@ import (
 )
 
 type ConfigType struct {
-	UpperCase bool
-	LowerCase bool
-	Digits    bool
-	Symbols   bool
-	WeakChars bool
 	Args      int
+	Digits    bool
+	ShowHelp  bool
+	LowerCase bool
+	Symbols   bool
+	UpperCase bool
+	WeakChars bool
 }
 
 var Config ConfigType
@@ -29,13 +30,15 @@ func Usage() {
 }
 
 func Parse() {
-
 	flag.Usage = Usage
-	flag.BoolVar(&Config.UpperCase, "uc", false, "use upper-case letters")
-	flag.BoolVar(&Config.LowerCase, "lc", false, "use lower-case letters")
-	flag.BoolVar(&Config.UpperCase, "d", false, "use numeric digits")
-	flag.BoolVar(&Config.UpperCase, "s", false, "use symbols")
-	flag.BoolVar(&Config.UpperCase, "w", false, "use weak characters (2-9, A-Z, a-z)")
+	flag.BoolVar(&Config.UpperCase, "u", false, "use upper-case letters")
+	flag.BoolVar(&Config.LowerCase, "l", false, "use lower-case letters")
+	flag.BoolVar(&Config.Digits, "d", false, "use numeric digits")
+	flag.BoolVar(&Config.Symbols, "s", false, "use symbols: !#%+:=?@")
+	flag.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-Z, a-z)")
+	flag.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
+
+	flag.Parse()
 
 	Config.Args = flag.NArg()
 
