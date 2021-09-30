@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/mojotx/CharVomit/pkg/arg"
 )
 
 // CharVomit package generates random passwords
+// uc, lc, d, s, w
 const (
 	AllUpperCase   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	AllLowerCase   = "abcdefghijklmnopqrstuvwxyz"
@@ -56,4 +59,45 @@ func (c *CharVomit) Puke(length int) (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
+	// Initialize to nothing
+	c.acceptableChars = ""
+
+	// Weak characters cannot be used with other flags
+	if config.WeakChars {
+		if config.Symbols {
+			return fmt.Errorf("cannot specify weak characters with symbols")
+		}
+
+		if config.Digits || config.UpperCase || config.LowerCase {
+			return fmt.Errorf("redundant specification of characters with weak characters")
+		}
+
+		c.acceptableChars = WeakChars
+		return nil
+	}
+
+	if config.Digits {
+		c.acceptableChars += AllDigits
+	}
+
+	if config.UpperCase {
+		c.acceptableChars += AllUpperCase
+	}
+
+	if config.LowerCase {
+		c.acceptableChars += AllLowerCase
+	}
+
+	if config.Symbols {
+		c.acceptableChars += DefaultSymbols
+	}
+
+	if len(c.acceptableChars) == 0 {
+		c.acceptableChars = DefaultChars
+	}
+
+	return nil
 }
