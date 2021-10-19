@@ -31,6 +31,9 @@ func Usage() {
 	_, _ = fmt.Fprintf(out, "Note that optional flags must precede the password length.\n\n")
 	_, _ = fmt.Fprintf(out, "For example, a 8-character password of all capital letters:\n")
 	_, _ = fmt.Fprintf(out, "%s -u 8\n\n", os.Args[0])
+	_, _ = fmt.Fprintln(out, "Also note that certain characters that are confusing are ignored by default,")
+	_, _ = fmt.Fprintln(out, "such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,")
+	_, _ = fmt.Fprintln(out, "by using the -u, -l, and -d flags. The default is equivalent to -w -s.")
 
 }
 
@@ -40,7 +43,7 @@ func Parse() {
 	flag.BoolVar(&Config.LowerCase, "l", false, "use lower-case letters")
 	flag.BoolVar(&Config.Digits, "d", false, "use numeric digits")
 	flag.BoolVar(&Config.Symbols, "s", false, "use symbols: !#%+:=?@")
-	flag.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-Z, a-z)")
+	flag.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
 	flag.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
 
 	flag.Parse()
