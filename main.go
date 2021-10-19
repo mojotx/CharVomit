@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mojotx/CharVomit/pkg/CharVomit"
-	"github.com/mojotx/CharVomit/pkg/arg"
 	"os"
 	"strconv"
+
+	"github.com/mojotx/CharVomit/pkg/CharVomit"
+	"github.com/mojotx/CharVomit/pkg/arg"
 )
 
 // TO-DO:
 // - Add support for duplicate character checking
-// - Add support for specifying valid characters, e.g., all upper-case, etc.
 func main() {
 
 	arg.Parse()
