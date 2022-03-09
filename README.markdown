@@ -1,5 +1,6 @@
 
 # CharVomit
+![Go Coverage](https://raw.githubusercontent.com/mojotx/CharVomit/master/coverage_badge.png)
 
 Generate random passwords using Go's
 [crypto/rand](https://golang.org/pkg/crypto/rand/) functions.
