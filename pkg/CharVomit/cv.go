@@ -21,23 +21,23 @@ const (
 )
 
 type CharVomit struct {
-	acceptableChars string
+	AcceptableChars string
 }
 
-func NewCharVomit(s string) CharVomit {
+func NewCharVomit(acceptableChars string) CharVomit {
 	return CharVomit{
-		acceptableChars: s,
+		AcceptableChars: acceptableChars,
 	}
 }
 
 func (c *CharVomit) getByte(i int64) byte {
-	return c.acceptableChars[i]
+	return c.AcceptableChars[i]
 }
 
 // acLen is a helper function that returns the length of the acceptable chars slice
 // It is intended to be used by the Puke() function
 func (c *CharVomit) acLen() *big.Int {
-	return big.NewInt(int64(len(c.acceptableChars)))
+	return big.NewInt(int64(len(c.AcceptableChars)))
 }
 
 // Puke returns a string of characters of a given length
@@ -63,7 +63,7 @@ func (c *CharVomit) Puke(length int) (string, error) {
 
 func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
 	// Initialize to nothing
-	c.acceptableChars = ""
+	c.AcceptableChars = ""
 
 	// Weak characters cannot be used with other flags
 	if config.WeakChars {
@@ -75,28 +75,28 @@ func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
 			return fmt.Errorf("redundant specification of characters with weak characters")
 		}
 
-		c.acceptableChars = WeakChars
+		c.AcceptableChars = WeakChars
 		return nil
 	}
 
 	if config.Digits {
-		c.acceptableChars += AllDigits
+		c.AcceptableChars += AllDigits
 	}
 
 	if config.UpperCase {
-		c.acceptableChars += AllUpperCase
+		c.AcceptableChars += AllUpperCase
 	}
 
 	if config.LowerCase {
-		c.acceptableChars += AllLowerCase
+		c.AcceptableChars += AllLowerCase
 	}
 
 	if config.Symbols {
-		c.acceptableChars += DefaultSymbols
+		c.AcceptableChars += DefaultSymbols
 	}
 
-	if len(c.acceptableChars) == 0 {
-		c.acceptableChars = DefaultChars
+	if len(c.AcceptableChars) == 0 {
+		c.AcceptableChars = DefaultChars
 	}
 
 	return nil
