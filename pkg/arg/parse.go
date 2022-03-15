@@ -15,6 +15,7 @@ type ConfigType struct {
 	Symbols     bool
 	UpperCase   bool
 	WeakChars   bool
+	Version     bool
 }
 
 var Config ConfigType
@@ -45,8 +46,14 @@ func Parse() {
 	flag.BoolVar(&Config.Symbols, "s", false, "use symbols: !#%+:=?@")
 	flag.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
 	flag.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
+	flag.BoolVar(&Config.Version, "v", false, "show version")
 
 	flag.Parse()
+
+	if Config.Version {
+		_, _ = fmt.Fprintln(flag.CommandLine.Output(), Version())
+		os.Exit(0)
+	}
 
 	if flag.NArg() == 1 {
 
