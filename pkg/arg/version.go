@@ -2,7 +2,7 @@ package arg
 
 const (
 	// CharVomitVersion is the current version of the application
-	CharVomitVersion = "v1.3.5"
+	CharVomitVersion = "v1.3.6"
 )
 
 // Version returns the current version of the application
