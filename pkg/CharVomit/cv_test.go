@@ -30,7 +30,7 @@ func TestCharVomit_Puke(t *testing.T) {
 			}
 
 			for _, c := range pw {
-				if !strings.ContainsRune(s, rune(c)) {
+				if !strings.ContainsRune(s, c) {
 					t.Errorf("char %q not present in %s", c, s)
 				}
 			}
