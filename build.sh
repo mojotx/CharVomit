@@ -1,26 +1,28 @@
-#!/bin/sh
-
-set -eux
-
-PROJECT_ROOT="/go/src/github.com/${GITHUB_REPOSITORY}"
-
-mkdir -p $PROJECT_ROOT
-rmdir $PROJECT_ROOT
-ln -s $GITHUB_WORKSPACE $PROJECT_ROOT
-cd $PROJECT_ROOT
-go get -v ./...
-
-EXT=''
-
-if [ $GOOS == 'windows' ]; then
-EXT='.exe'
-fi
-
-if [ -x "./build.sh" ]; then
-  OUTPUT=`./build.sh "${CMD_PATH}"`
+#!/bin/bash
+export GOPATH=$HOME/go
+if [ "${GITHUB_ACTIONS}" == "true" ]; then
+    go test ./... 1> debug.out
 else
-  GOBIN=$PWD go install -v "${CMD_PATH}"
-  OUTPUT="${PROJECT_NAME}${EXT}"
+    go test -v ./...
 fi
 
-echo ${OUTPUT}
+
+BINARY="CharVomit"
+
+if go get ./... 1>> debug.out; then
+    if [ "${GOOS}" == "windows" ]; then
+        if [ "${GITHUB_ACTIONS}" == "true" ]; then
+            go build -v -ldflags="-X main.gitver=$(git describe --always --long --dirty)" -o ${BINARY}.exe ./cmd/CharVomit 1>> debug.out
+            echo "${BINARY}.exe"
+        else
+            go build -v -ldflags="-X main.gitver=$(git describe --always --long --dirty)" -o ${BINARY}.exe ./cmd/CharVomit
+        fi
+    else
+        if [ "${GITHUB_ACTIONS}" == "true" ]; then
+            go build -v -ldflags="-X main.gitver=$(git describe --always --long --dirty)" -o ${BINARY} ./cmd/CharVomit 1>> debug.out
+            echo "${BINARY}"
+        else
+            go build -v -ldflags="-X main.gitver=$(git describe --always --long --dirty)" -o ${BINARY} ./cmd/CharVomit
+        fi
+    fi
+fi
