@@ -3,6 +3,8 @@
 
 on: release
 name: Build Release
+env:
+  CMD_PATH: ./...
 jobs:
   release-linux-386:
     name: release linux/386
