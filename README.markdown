@@ -39,7 +39,7 @@ For example, a 8-character password of all capital letters:
 If you have a Go compiler installed, you can use this command:
 
 ```shell
-go install -v github.com/mojotx/CharVomit@latest
+go install -v github.com/mojotx/CharVomit/cmd/CharVomit@latest
 ```
 
 Alternatively, you can download the latest [release](https://github.com/mojotx/CharVomit/releases).
