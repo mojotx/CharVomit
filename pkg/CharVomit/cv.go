@@ -61,6 +61,22 @@ func (c *CharVomit) Puke(length int) (string, error) {
 	return b.String(), nil
 }
 
+func (c *CharVomit) RemoveExcluded(config arg.ConfigType) error {
+	if len(config.Excluded) <= 0 || len(c.AcceptableChars) <= 0 {
+		return nil
+	}
+
+	data := []rune(config.Excluded)
+	for _, r := range data {
+		c.AcceptableChars = strings.ReplaceAll(c.AcceptableChars, string(r), "")
+	}
+
+	if len(c.AcceptableChars) <= 0 {
+		return fmt.Errorf("no acceptable characters")
+	}
+	return nil
+}
+
 func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
 	// Initialize to nothing
 	c.AcceptableChars = ""
@@ -95,8 +111,12 @@ func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
 		c.AcceptableChars += DefaultSymbols
 	}
 
-	if len(c.AcceptableChars) == 0 {
+	if len(c.AcceptableChars) <= 0 {
 		c.AcceptableChars = DefaultChars
+	}
+
+	if err := c.RemoveExcluded(config); err != nil {
+		return err
 	}
 
 	return nil

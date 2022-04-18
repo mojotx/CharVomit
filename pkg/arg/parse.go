@@ -16,6 +16,7 @@ type ConfigType struct {
 	UpperCase   bool
 	WeakChars   bool
 	Version     bool
+	Excluded    string
 }
 
 var Config ConfigType
@@ -47,6 +48,7 @@ func Parse() {
 	flag.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
 	flag.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
 	flag.BoolVar(&Config.Version, "v", false, "show version")
+	flag.StringVar(&Config.Excluded, "x", "", "excluded characters (will be removed)")
 
 	flag.Parse()
 
