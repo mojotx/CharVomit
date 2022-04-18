@@ -66,8 +66,7 @@ func (c *CharVomit) RemoveExcluded(config arg.ConfigType) error {
 		return nil
 	}
 
-	data := []rune(config.Excluded)
-	for _, r := range data {
+	for _, r := range config.Excluded {
 		c.AcceptableChars = strings.ReplaceAll(c.AcceptableChars, string(r), "")
 	}
 
