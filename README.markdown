@@ -11,7 +11,7 @@ hence the name.
 ## Usage
 
 ```shell
-Usage: ./CharVomit [ length ]
+Usage: CharVomit [ length ]
 
 If a password length is not specified, 32 is used.
 
@@ -21,12 +21,43 @@ Other optional flags are:
   -l	use lower-case letters
   -s	use symbols: !#%+:=?@
   -u	use upper-case letters
-  -w	use weak characters (2-9, A-Z, a-z)
+  -v	show version
+  -w	use weak characters (2-9, A-N, P-Z, a-k, m-z)
+  -x string
+    	excluded characters (will be removed)
 
 Note that optional flags must precede the password length.
 
 For example, a 8-character password of all capital letters:
-./CharVomit -u 8
+CharVomit -u 8
+
+Also note that certain characters that are confusing are ignored by default,
+such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,
+by using the -u, -l, and -d flags. The default is equivalent to -w -s.
+
+```
+
+## Examples
+
+### 32-character password, without ambiguous characters
+
+```shell
+$ CharVomit
+Va9nBzgtW:Xt@28pcXW+6zpjb@DuyqJ3
+```
+
+### 20-character password, with weak (non-ambiguous) characters, no symbols
+
+```shell
+$ CharVomit -w 20
+qm995CZrA7pRC4SgfDrJ
+```
+
+### 16-character password, with all upper- and lower-case letters and digits, as well as the symbols '!' and '@'
+
+```shell
+$ CharVomit -l -u -s -x '#%+:=?' 20
+Xl!bXDnZC@srbxBDNzdj
 ```
 
 ## To-Do
