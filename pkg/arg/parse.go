@@ -22,6 +22,7 @@ type ConfigType struct {
 var Config ConfigType
 
 func Usage() {
+
 	out := flag.CommandLine.Output()
 	_, _ = fmt.Fprintf(out, "Usage: %s [ length ]\n\n", os.Args[0])
 	_, _ = fmt.Fprintf(out, "If a password length is not specified, 32 is used.\n\n")
@@ -39,40 +40,48 @@ func Usage() {
 
 }
 
-func Parse() {
-	flag.Usage = Usage
-	flag.BoolVar(&Config.UpperCase, "u", false, "use upper-case letters")
-	flag.BoolVar(&Config.LowerCase, "l", false, "use lower-case letters")
-	flag.BoolVar(&Config.Digits, "d", false, "use numeric digits")
-	flag.BoolVar(&Config.Symbols, "s", false, "use symbols: !#%+:=?@")
-	flag.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
-	flag.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
-	flag.BoolVar(&Config.Version, "v", false, "show version")
-	flag.StringVar(&Config.Excluded, "x", "", "excluded characters (will be removed)")
+func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
 
-	flag.Parse()
+	output := flag.CommandLine.Output()
 
-	if Config.Version {
-		_, _ = fmt.Fprintln(flag.CommandLine.Output(), Version())
-		os.Exit(0)
-	}
+	fs.Usage = Usage
+	fs.BoolVar(&Config.UpperCase, "u", false, "use upper-case letters")
+	fs.BoolVar(&Config.LowerCase, "l", false, "use lower-case letters")
+	fs.BoolVar(&Config.Digits, "d", false, "use numeric digits")
+	fs.BoolVar(&Config.Symbols, "s", false, "use symbols: !#%+:=?@")
+	fs.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
+	fs.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
+	fs.BoolVar(&Config.Version, "v", false, "show version")
+	fs.StringVar(&Config.Excluded, "x", "", "excluded characters (will be removed)")
 
-	if flag.NArg() == 1 {
-
-		var err error
-		Config.PasswordLen, err = strconv.Atoi(flag.Arg(0))
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		_, _ = fmt.Fprintf(output, "cannot parse os.Args[1:]: %s\n", err.Error())
+		exitAfter = true
+		rc = 1
+	} else if Config.Version {
+		_, _ = fmt.Fprintln(output, Version())
+		exitAfter = true
+		rc = 0
+	} else if fs.NArg() == 1 {
+		Config.PasswordLen, err = strconv.Atoi(fs.Arg(0))
 		if err != nil {
-			_, _ = fmt.Fprintf(flag.CommandLine.Output(), "cannot parse argument '%+v': %s", flag.Arg(0), err.Error())
-			os.Exit(1)
+			_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
+			exitAfter = true
+			rc = 1
 		}
 
 		// Get absolute value
 		if Config.PasswordLen < 0 {
 			Config.PasswordLen = Config.PasswordLen * -1
 		}
+	} else if Config.ShowHelp {
+		fs.Usage()
+		exitAfter = true
+		rc = 0
 	} else {
 		// default to 32 characters
 		Config.PasswordLen = 32
 	}
 
+	return
 }
