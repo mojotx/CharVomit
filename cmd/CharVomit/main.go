@@ -10,11 +10,20 @@ import (
 	"github.com/mojotx/CharVomit/pkg/arg"
 )
 
+var fs *flag.FlagSet
+
+func init() {
+	fs = flag.NewFlagSet("DynamicParser", flag.ExitOnError)
+}
+
 // TO-DO:
 // - Add support for duplicate character checking
 func main() {
 
-	arg.Parse()
+	shouldExit, rc := arg.Parse(fs)
+	if shouldExit {
+		os.Exit(rc)
+	}
 
 	if arg.Config.ShowHelp {
 		arg.Usage()
@@ -30,10 +39,10 @@ func main() {
 
 	pwLen := 32
 
-	if flag.NArg() == 1 {
+	if fs.NArg() == 1 {
 
 		var err error
-		pwLen, err = strconv.Atoi(flag.Arg(0))
+		pwLen, err = strconv.Atoi(fs.Arg(0))
 		if err != nil {
 			fmt.Printf("cannot parse argument '%+v': %s", flag.Arg(0), err.Error())
 			os.Exit(1)
