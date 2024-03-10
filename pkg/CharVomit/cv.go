@@ -16,8 +16,9 @@ const (
 	AllLowerCase   = "abcdefghijklmnopqrstuvwxyz"
 	AllDigits      = "0123456789"
 	DefaultSymbols = "!#%+:=?@"
-	DefaultChars   = "!#%+23456789:=?@ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-	WeakChars      = "23456789ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	// cSpell:disable-next-line
+	DefaultChars = "!#%+23456789:=?@ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	WeakChars    = "23456789ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 )
 
 type CharVomit struct {

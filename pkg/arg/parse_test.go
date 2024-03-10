@@ -193,3 +193,90 @@ func TestParseVersion(t *testing.T) {
 		t.Errorf("invalid version, wanted '%s' got '%s'", Version(), version)
 	}
 }
+
+func TestParse(t *testing.T) {
+	// Save the original command-line arguments and restore them after the test.
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Set up a mock command-line input.
+	os.Args = []string{"CharVomit", "-u", "-l", "-d", "-s", "-w", "-x", "0O1l", "8"}
+
+	// Create a new FlagSet to simulate command-line arguments.
+	fs := flag.NewFlagSet("CharVomit", flag.ExitOnError)
+
+	// Call the Parse function with the mock FlagSet.
+	exitAfter, rc := Parse(fs)
+
+	// Check if the function exits as expected.
+	if exitAfter {
+		t.Errorf("Parse() exited unexpectedly")
+	}
+
+	// Check if the return code is as expected.
+	if rc != 0 {
+		t.Errorf("Parse() returned unexpected return code: %d", rc)
+	}
+
+	// Check if the parsed configuration matches the expected values.
+	expectedConfig := ConfigType{
+		PasswordLen: 8,
+		Digits:      true,
+		ShowHelp:    false,
+		LowerCase:   true,
+		Symbols:     true,
+		UpperCase:   true,
+		WeakChars:   true,
+		Version:     false,
+		Excluded:    "0O1l",
+	}
+
+	if Config != expectedConfig {
+		t.Errorf("Parse() parsed configuration does not match expected values, wanted '%+v' got '%+v'", expectedConfig, Config)
+	}
+}
+
+func TestParseHelp(t *testing.T) {
+	// Save the original command-line arguments and restore them after the test.
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Initialize Config
+	Config = ConfigType{}
+
+	// Set up a mock command-line input.
+	os.Args = []string{"CharVomit", "-h"}
+
+	// Create a new FlagSet to simulate command-line arguments.
+	fs := flag.NewFlagSet("CharVomit", flag.ExitOnError)
+
+	// Call the Parse function with the mock FlagSet.
+	exitAfter, rc := Parse(fs)
+
+	// Check if the function exits as expected.
+	if !exitAfter {
+		t.Errorf("Parse() did not exit as expected")
+	}
+
+	// Check if the return code is as expected.
+	if rc != 0 {
+		t.Errorf("Parse() returned unexpected return code: %d", rc)
+	}
+
+	// Check if the parsed configuration matches the expected values.
+	expectedConfig := ConfigType{
+		PasswordLen: 0,
+		Digits:      false,
+		ShowHelp:    true,
+		LowerCase:   false,
+		Symbols:     false,
+		UpperCase:   false,
+		WeakChars:   false,
+		Version:     false,
+		Excluded:    "",
+	}
+
+	if Config != expectedConfig {
+		t.Errorf("Parse() parsed configuration does not match expected values, wanted '%+v' got '%+v'", expectedConfig, Config)
+	}
+}
