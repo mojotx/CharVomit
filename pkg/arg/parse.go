@@ -1,6 +1,7 @@
 package arg
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -42,6 +43,8 @@ func Usage() {
 
 func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
 
+	var buffer bytes.Buffer
+	flag.CommandLine.SetOutput(&buffer)
 	output := flag.CommandLine.Output()
 
 	fs.Usage = Usage

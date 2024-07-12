@@ -250,20 +250,26 @@ func TestParseHelp(t *testing.T) {
 	// Create a new FlagSet to simulate command-line arguments.
 	fs := flag.NewFlagSet("CharVomit", flag.ExitOnError)
 
-	// Call the Parse function with the mock FlagSet.
+	// Suppress the help output
+	oldOutput := fs.Output()
+	defer fs.SetOutput(oldOutput)
+	var buf bytes.Buffer
+	fs.SetOutput(&buf)
+
+	// Call the Parse function with the mock FlagSet
 	exitAfter, rc := Parse(fs)
 
-	// Check if the function exits as expected.
+	// Check if the function exits as expected
 	if !exitAfter {
 		t.Errorf("Parse() did not exit as expected")
 	}
 
-	// Check if the return code is as expected.
+	// Check if the return code is as expected
 	if rc != 0 {
 		t.Errorf("Parse() returned unexpected return code: %d", rc)
 	}
 
-	// Check if the parsed configuration matches the expected values.
+	// Check if the parsed configuration matches the expected values
 	expectedConfig := ConfigType{
 		PasswordLen: 0,
 		Digits:      false,
@@ -275,8 +281,15 @@ func TestParseHelp(t *testing.T) {
 		Version:     false,
 		Excluded:    "",
 	}
-
 	if Config != expectedConfig {
 		t.Errorf("Parse() parsed configuration does not match expected values, wanted '%+v' got '%+v'", expectedConfig, Config)
+	}
+
+	// t.Logf("Help output: %s", buf.String())
+
+	// Check if the help output is empty
+	helpOutput := buf.String()
+	if helpOutput != "" {
+		t.Errorf("Parse() produced unexpected help output: %s", helpOutput)
 	}
 }
