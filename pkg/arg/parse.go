@@ -1,7 +1,6 @@
 package arg
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -41,13 +40,28 @@ func Usage() {
 
 }
 
-func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
+// makeUsageFunc creates a usage function for the given FlagSet
+func makeUsageFunc(fs *flag.FlagSet) func() {
+	return func() {
+		out := fs.Output()
+		_, _ = fmt.Fprintf(out, "Usage: %s [ length ]\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(out, "If a password length is not specified, 32 is used.\n\n")
+		_, _ = fmt.Fprintf(out, "Other optional flags are:\n")
 
-	var buffer bytes.Buffer
-	flag.CommandLine.SetOutput(&buffer)
-	output := flag.CommandLine.Output()
+		fs.PrintDefaults()
 
-	fs.Usage = Usage
+		_, _ = fmt.Fprintln(out)
+		_, _ = fmt.Fprintf(out, "Note that optional flags must precede the password length.\n\n")
+		_, _ = fmt.Fprintf(out, "For example, a 8-character password of all capital letters:\n")
+		_, _ = fmt.Fprintf(out, "%s -u 8\n\n", os.Args[0])
+		_, _ = fmt.Fprintln(out, "Also note that certain characters that are confusing are ignored by default,")
+		_, _ = fmt.Fprintln(out, "such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,")
+		_, _ = fmt.Fprintln(out, "by using the -u, -l, and -d flags. The default is equivalent to -w -s.")
+	}
+}
+
+// RegisterFlags registers all command-line flags with the given FlagSet
+func RegisterFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&Config.UpperCase, "u", false, "use upper-case letters")
 	fs.BoolVar(&Config.LowerCase, "l", false, "use lower-case letters")
 	fs.BoolVar(&Config.Digits, "d", false, "use numeric digits")
@@ -56,6 +70,14 @@ func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
 	fs.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
 	fs.BoolVar(&Config.Version, "v", false, "show version")
 	fs.StringVar(&Config.Excluded, "x", "", "excluded characters (will be removed)")
+}
+
+func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
+
+	output := fs.Output()
+
+	fs.Usage = makeUsageFunc(fs)
+	RegisterFlags(fs)
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		_, _ = fmt.Fprintf(output, "cannot parse os.Args[1:]: %s\n", err.Error())

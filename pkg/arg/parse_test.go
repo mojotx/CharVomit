@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const needle = `If a password length is not specified, 32 is used.`
@@ -48,6 +50,8 @@ func TestParseWeak(t *testing.T) {
 
 	fs := flag.NewFlagSet("TestParseWeak", flag.ExitOnError)
 	Parse(fs)
+
+	t.Logf("Config: %+v", Config)
 
 	if Config.UpperCase {
 		t.Error("Config.UpperCase should not be set")
@@ -133,16 +137,6 @@ func TestParseNoArg(t *testing.T) {
 }
 
 func TestParseVersion(t *testing.T) {
-	// idempotency for the win
-	originalWriter := flag.CommandLine.Output()
-	defer func() {
-		flag.CommandLine.SetOutput(originalWriter)
-	}()
-
-	// Intercept output
-	var buf bytes.Buffer
-	flag.CommandLine.SetOutput(&buf)
-
 	Config = ConfigType{}
 	newArgs := []string{os.Args[0], "-v"}
 	savedArgs := os.Args
@@ -152,46 +146,30 @@ func TestParseVersion(t *testing.T) {
 
 	os.Args = newArgs
 
-	fs := flag.NewFlagSet("TestParseNoArg", flag.ExitOnError)
-	Parse(fs)
+	fs := flag.NewFlagSet("TestParseVersion", flag.ExitOnError)
 
-	if Config.UpperCase {
-		t.Error("Config.UpperCase should not be set")
-	}
+	// Intercept output
+	var buf bytes.Buffer
+	fs.SetOutput(&buf)
 
-	if Config.LowerCase {
-		t.Error("Config.LowerCase should not be set")
-	}
+	exitAfter, rc := Parse(fs)
+	t.Logf("exitAfter: %t, rc: %d", exitAfter, rc)
 
-	if Config.Digits {
-		t.Error("Config.Digits should not be set")
-	}
+	assert.False(t, Config.UpperCase)
+	assert.False(t, Config.LowerCase)
+	assert.False(t, Config.Digits)
+	assert.False(t, Config.Symbols)
+	assert.False(t, Config.ShowHelp)
+	assert.True(t, Config.Version)
+	assert.Empty(t, Config.Excluded)
+	assert.False(t, Config.WeakChars)
 
-	if Config.Symbols {
-		t.Error("Config.Symbols should not be set")
-	}
+	actualVersion := strings.TrimRight(buf.String(), "\r\n\t ")
 
-	if Config.ShowHelp {
-		t.Error("Config.ShowHelp should not be set")
-	}
-
-	if !Config.Version {
-		t.Error("Config.Version SHOULD be set")
-	}
-
-	if Config.Excluded != "" {
-		t.Errorf("Config.Excluded should be empty (%s)", Config.Excluded)
-	}
-
-	if Config.WeakChars {
-		t.Error("Config.WeakChars should not be set")
-	}
-
-	version := strings.TrimRight(buf.String(), "\r\n\t ")
-
-	if version != Version() {
-		t.Errorf("invalid version, wanted '%s' got '%s'", Version(), version)
-	}
+	expectedVersion := Version()
+	t.Logf("Expected version: %s", expectedVersion)
+	t.Logf("Actual version: %s", actualVersion)
+	assert.Equal(t, expectedVersion, actualVersion)
 }
 
 func TestParse(t *testing.T) {
@@ -205,18 +183,19 @@ func TestParse(t *testing.T) {
 	// Create a new FlagSet to simulate command-line arguments.
 	fs := flag.NewFlagSet("CharVomit", flag.ExitOnError)
 
+	// suppress the help output
+	oldOutput := fs.Output()
+	var buf bytes.Buffer
+	fs.SetOutput(&buf)
+
 	// Call the Parse function with the mock FlagSet.
 	exitAfter, rc := Parse(fs)
 
 	// Check if the function exits as expected.
-	if exitAfter {
-		t.Errorf("Parse() exited unexpectedly")
-	}
+	assert.False(t, exitAfter)
 
 	// Check if the return code is as expected.
-	if rc != 0 {
-		t.Errorf("Parse() returned unexpected return code: %d", rc)
-	}
+	assert.Zero(t, rc)
 
 	// Check if the parsed configuration matches the expected values.
 	expectedConfig := ConfigType{
@@ -231,9 +210,8 @@ func TestParse(t *testing.T) {
 		Excluded:    "0O1l",
 	}
 
-	if Config != expectedConfig {
-		t.Errorf("Parse() parsed configuration does not match expected values, wanted '%+v' got '%+v'", expectedConfig, Config)
-	}
+	assert.Equal(t, expectedConfig, Config)
+	fs.SetOutput(oldOutput)
 }
 
 func TestParseHelp(t *testing.T) {
@@ -260,14 +238,10 @@ func TestParseHelp(t *testing.T) {
 	exitAfter, rc := Parse(fs)
 
 	// Check if the function exits as expected
-	if !exitAfter {
-		t.Errorf("Parse() did not exit as expected")
-	}
+	assert.True(t, exitAfter)
 
 	// Check if the return code is as expected
-	if rc != 0 {
-		t.Errorf("Parse() returned unexpected return code: %d", rc)
-	}
+	assert.Zero(t, rc, "Expected non-zero return code for help output")
 
 	// Check if the parsed configuration matches the expected values
 	expectedConfig := ConfigType{
@@ -281,15 +255,12 @@ func TestParseHelp(t *testing.T) {
 		Version:     false,
 		Excluded:    "",
 	}
-	if Config != expectedConfig {
-		t.Errorf("Parse() parsed configuration does not match expected values, wanted '%+v' got '%+v'", expectedConfig, Config)
-	}
+	assert.Equal(t, expectedConfig, Config, "Parsed configuration does not match expected values")
 
 	// t.Logf("Help output: %s", buf.String())
 
 	// Check if the help output is empty
+	t.Logf("Size of buf is %d", buf.Len())
 	helpOutput := buf.String()
-	if helpOutput != "" {
-		t.Errorf("Parse() produced unexpected help output: %s", helpOutput)
-	}
+	assert.NotEmpty(t, helpOutput, "Expected help output to be non-empty")
 }
