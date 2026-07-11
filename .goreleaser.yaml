@@ -1,0 +1,55 @@
+version: 2
+
+project_name: CharVomit
+
+before:
+  hooks:
+    - go mod download -x
+    - go mod verify
+    - go mod tidy -v
+
+builds:
+  - main: ./cmd/CharVomit
+    binary: charvomit
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: darwin
+        goarch: arm
+
+archives:
+  - format: tar.gz
+    goos: linux
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+  - format: tar.gz
+    goos: darwin
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+  - format: zip
+    goos: windows
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+
+release:
+  github:
+    owner: mojotx
+    name: CharVomit
