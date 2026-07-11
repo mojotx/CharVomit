@@ -27,22 +27,9 @@ builds:
         goarch: arm
 
 archives:
-  - format: tar.gz
-    goos: linux
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- .Version }}_
-      {{- .Os }}_
-      {{- .Arch }}
-  - format: tar.gz
-    goos: darwin
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- .Version }}_
-      {{- .Os }}_
-      {{- .Arch }}
-  - format: zip
-    goos: windows
+  - format_overrides:
+      - goos: windows
+        format: zip
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
