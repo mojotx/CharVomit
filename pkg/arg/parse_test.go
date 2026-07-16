@@ -264,3 +264,45 @@ func TestParseHelp(t *testing.T) {
 	helpOutput := buf.String()
 	assert.NotEmpty(t, helpOutput, "Expected help output to be non-empty")
 }
+
+func TestParseInvalidMultipleLengths(t *testing.T) {
+	Config = ConfigType{}
+	newArgs := []string{os.Args[0], "8", "9"}
+	savedArgs := os.Args
+	defer func() {
+		os.Args = savedArgs
+	}()
+
+	os.Args = newArgs
+
+	fs := flag.NewFlagSet("TestParseInvalidMultipleLengths", flag.ExitOnError)
+	var buf bytes.Buffer
+	fs.SetOutput(&buf)
+
+	exitAfter, rc := Parse(fs)
+
+	assert.True(t, exitAfter)
+	assert.Equal(t, 1, rc)
+	assert.Contains(t, buf.String(), "too many arguments")
+}
+
+func TestParseInvalidLength(t *testing.T) {
+	Config = ConfigType{}
+	newArgs := []string{os.Args[0], "not-a-number"}
+	savedArgs := os.Args
+	defer func() {
+		os.Args = savedArgs
+	}()
+
+	os.Args = newArgs
+
+	fs := flag.NewFlagSet("TestParseInvalidLength", flag.ExitOnError)
+	var buf bytes.Buffer
+	fs.SetOutput(&buf)
+
+	exitAfter, rc := Parse(fs)
+
+	assert.True(t, exitAfter)
+	assert.Equal(t, 1, rc)
+	assert.Contains(t, buf.String(), "cannot parse argument")
+}

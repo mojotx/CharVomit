@@ -53,7 +53,7 @@ $ CharVomit -w 20
 qm995CZrA7pRC4SgfDrJ
 ```
 
-### 16-character password, with all upper- and lower-case letters and digits, as well as the symbols '!' and '@'
+### 20-character password, with all upper- and lower-case letters and digits, as well as the symbols '!' and '@'
 
 ```shell
 $ CharVomit -l -u -s -x '#%+:=?' 20

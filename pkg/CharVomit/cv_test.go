@@ -213,6 +213,27 @@ func TestSetAcceptableChars(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("Weak characters with exclusions", func(t *testing.T) {
+		cv := NewCharVomit("")
+		config := arg.ConfigType{
+			WeakChars: true,
+			Excluded:  "0O1l",
+		}
+		err := cv.SetAcceptableChars(config)
+		assert.NoError(t, err)
+		assert.Equal(t, WeakChars, cv.AcceptableChars)
+	})
+
+	t.Run("Weak characters with exclusions removing all chars", func(t *testing.T) {
+		cv := NewCharVomit("")
+		config := arg.ConfigType{
+			WeakChars: true,
+			Excluded:  WeakChars,
+		}
+		err := cv.SetAcceptableChars(config)
+		assert.Error(t, err)
+	})
+
 	t.Run("Excluded characters", func(t *testing.T) {
 		cv := NewCharVomit("")
 		config := arg.ConfigType{

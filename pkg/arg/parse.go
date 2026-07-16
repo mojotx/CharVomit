@@ -87,25 +87,35 @@ func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
 		_, _ = fmt.Fprintln(output, Version())
 		exitAfter = true
 		rc = 0
-	} else if fs.NArg() == 1 {
-		Config.PasswordLen, err = strconv.Atoi(fs.Arg(0))
-		if err != nil {
-			_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
-			exitAfter = true
-			rc = 1
-		}
-
-		// Get absolute value
-		if Config.PasswordLen < 0 {
-			Config.PasswordLen = Config.PasswordLen * -1
-		}
 	} else if Config.ShowHelp {
 		fs.Usage()
 		exitAfter = true
 		rc = 0
 	} else {
-		// default to 32 characters
+		if fs.NArg() > 1 {
+			_, _ = fmt.Fprintf(output, "too many arguments: expected at most 1 positional length, got %d\n", fs.NArg())
+			exitAfter = true
+			rc = 1
+			return
+		}
+
+		// default to 32 characters unless a single explicit length is provided
 		Config.PasswordLen = 32
+
+		if fs.NArg() == 1 {
+			Config.PasswordLen, err = strconv.Atoi(fs.Arg(0))
+			if err != nil {
+				_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
+				exitAfter = true
+				rc = 1
+				return
+			}
+
+			// Get absolute value
+			if Config.PasswordLen < 0 {
+				Config.PasswordLen = Config.PasswordLen * -1
+			}
+		}
 	}
 
 	return

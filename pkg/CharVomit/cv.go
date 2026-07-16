@@ -92,7 +92,6 @@ func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
 		}
 
 		c.AcceptableChars = WeakChars
-		return nil
 	}
 
 	if config.Digits {
