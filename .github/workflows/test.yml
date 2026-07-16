@@ -21,5 +21,7 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version-file: 'go.mod'
+    - name: Clear Go cache (macOS fix)
+      run: go clean -cache
     - name: Test
       run: go test -count=1 -v ./...
