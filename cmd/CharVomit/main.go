@@ -16,6 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:           "CharVomit [length]",
 	Short:         "Generate random passwords.",
+	Version:       arg.Version(),
 	Args:          cobra.MaximumNArgs(1),
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -126,7 +127,7 @@ func resolveCommandConfig(cmd *cobra.Command, args []string) (arg.ConfigType, er
 	return cfg, nil
 }
 
-func writePassword(password, outputFile string, _ bool) error {
+func writePassword(password, outputFile string, output io.Writer) error {
 	if outputFile != "" {
 		if err := os.WriteFile(outputFile, []byte(password+"\n"), 0o600); err != nil {
 			return err
@@ -135,7 +136,8 @@ func writePassword(password, outputFile string, _ bool) error {
 	}
 
 	if outputFile == "" {
-		fmt.Println(password)
+		_, err := fmt.Fprintln(output, password)
+		return err
 	}
 
 	return nil
@@ -152,7 +154,7 @@ func run(cfg arg.ConfigType) error {
 		return fmt.Errorf("Puke(%d) error: %w", cfg.PasswordLen, err)
 	}
 
-	return writePassword(pw, cfg.OutputFile, cfg.Stdout)
+	return writePassword(pw, cfg.OutputFile, os.Stdout)
 }
 
 func main() {

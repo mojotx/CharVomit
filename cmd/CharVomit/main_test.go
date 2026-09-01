@@ -1,13 +1,24 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/mojotx/CharVomit/pkg/CharVomit"
+	"github.com/mojotx/CharVomit/pkg/arg"
 )
+
+type failingWriter struct {
+	err error
+}
+
+func (w failingWriter) Write([]byte) (int, error) {
+	return 0, w.err
+}
 
 func TestResolveConfigUses32CharacterDefault(t *testing.T) {
 	cfg, err := resolveConfig(nil)
@@ -59,7 +70,7 @@ func TestResolveConfigAcceptsSymbolsAlias(t *testing.T) {
 func TestWritePasswordToFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "password.txt")
 
-	if err := writePassword("abc123", path, false); err != nil {
+	if err := writePassword("abc123", path, nil); err != nil {
 		t.Fatalf("unexpected error writing file: %v", err)
 	}
 
@@ -70,5 +81,31 @@ func TestWritePasswordToFile(t *testing.T) {
 
 	if got := string(content); got != "abc123\n" {
 		t.Fatalf("unexpected file content: %q", got)
+	}
+}
+
+func TestWritePasswordReturnsStandardOutputError(t *testing.T) {
+	want := errors.New("broken pipe")
+	err := writePassword("abc123", "", failingWriter{err: want})
+	if !errors.Is(err, want) {
+		t.Fatalf("expected stdout error %v, got %v", want, err)
+	}
+}
+
+func TestRootCommandPrintsVersion(t *testing.T) {
+	var output bytes.Buffer
+	rootCmd.SetArgs([]string{"--version"})
+	rootCmd.SetOut(&output)
+	t.Cleanup(func() {
+		rootCmd.SetArgs(nil)
+		rootCmd.SetOut(nil)
+	})
+
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if got, want := output.String(), "CharVomit version "+arg.Version()+"\n"; got != want {
+		t.Fatalf("expected version output %q, got %q", want, got)
 	}
 }

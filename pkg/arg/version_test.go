@@ -3,8 +3,7 @@ package arg
 import "testing"
 
 func TestVersion(t *testing.T) {
-	v := Version()
-	if v != CharVomitVersion {
-		t.Errorf("expected '%s', got '%s'", CharVomitVersion, v)
+	if got, want := Version(), "dev"; got != want {
+		t.Errorf("expected %q, got %q", want, got)
 	}
 }
