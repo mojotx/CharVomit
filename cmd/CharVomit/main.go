@@ -152,7 +152,7 @@ func run(cfg arg.ConfigType) error {
 
 	pw, err := cv.Puke(cfg.PasswordLen)
 	if err != nil {
-		return fmt.Errorf("Puke(%d) error: %w", cfg.PasswordLen, err)
+		return fmt.Errorf("Puke(%d) error: %w\n", cfg.PasswordLen, err)
 	}
 
 	return writePassword(pw, cfg.OutputFile, cfg.Stdout)
