@@ -99,6 +99,10 @@ Xl!bXDnZC@srbxBDNzdj
 * Implement functionality to specify number of duplicate characters
 * Improve documentation
 
+## Known CI limitations
+
+* **2026-09-01**: `-race` is disabled for the macOS job in [ci.yml](.github/workflows/ci.yml) because GitHub's `macos-latest` runner image ships an Xcode/linker version that omits `LC_UUID` from race-instrumented test binaries, causing `dyld` to abort (https://github.com/golang/go/issues/61229). This isn't reproducible on a current local machine, only on the runner's pinned (older) toolchain. Worth revisiting periodically: once GitHub bumps `macos-latest` past the affected Xcode version, `-race` can likely be re-enabled for macOS in ci.yml.
+
 ## Installation
 
 If you have a Go compiler installed, you can use this command:
