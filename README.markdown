@@ -1,5 +1,6 @@
 
 # CharVomit
+
 ![Go Coverage](https://raw.githubusercontent.com/mojotx/CharVomit/master/coverage_badge.png)
 
 Generate random passwords using Go's
@@ -16,15 +17,15 @@ Usage: CharVomit [ length ]
 If a password length is not specified, 32 is used.
 
 Other optional flags are:
-  -d	use numeric digits
-  -h	show help and exit
-  -l	use lower-case letters
-  -s	use symbols: !#%+:=?@
-  -u	use upper-case letters
-  -v	show version
-  -w	use weak characters (2-9, A-N, P-Z, a-k, m-z)
+  -d use numeric digits
+  -h show help and exit
+  -l use lower-case letters
+  -s use symbols: !#%+:=?@
+  -u use upper-case letters
+  -v show version
+  -w use weak characters (2-9, A-N, P-Z, a-k, m-z)
   -x string
-    	excluded characters (will be removed)
+    excluded characters (will be removed)
 
 Note that optional flags must precede the password length.
 
@@ -35,6 +36,23 @@ Also note that certain characters that are confusing are ignored by default,
 such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,
 by using the -u, -l, and -d flags. The default is equivalent to -w -s.
 
+```
+
+## Library usage
+
+If you want to use the package from Go code instead of the CLI, prefer parsing a local config value rather than relying on the package-global state.
+
+```go
+fs := flag.NewFlagSet("example", flag.ContinueOnError)
+config, exitAfter, rc := arg.ParseArgs(os.Args[1:], fs)
+if exitAfter {
+    os.Exit(rc)
+}
+
+cv := CharVomit.NewCharVomit("")
+if err := cv.SetAcceptableChars(config); err != nil {
+    panic(err)
+}
 ```
 
 ## Examples
