@@ -1,8 +1,9 @@
 package arg
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRemoveIndex(t *testing.T) {
@@ -12,7 +13,5 @@ func TestRemoveIndex(t *testing.T) {
 	result = RemoveIndex(result, 5)
 	result = RemoveIndex(result, 5)
 
-	if !reflect.DeepEqual(result, wanted) {
-		t.Errorf("wanted '%+v' got '%+v'", wanted, result)
-	}
+	assert.Equal(t, wanted, result)
 }

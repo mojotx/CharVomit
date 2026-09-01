@@ -32,9 +32,7 @@ func TestUsage(t *testing.T) {
 	haystack := buf.String()
 	re := regexp.MustCompile(needle)
 
-	if !re.MatchString(haystack) {
-		t.Errorf("Did not find '%s' in '%s'", needle, haystack)
-	}
+	assert.Regexp(t, re, haystack)
 }
 
 func TestParseWeak(t *testing.T) {
@@ -53,37 +51,14 @@ func TestParseWeak(t *testing.T) {
 
 	t.Logf("Config: %+v", Config)
 
-	if Config.UpperCase {
-		t.Error("Config.UpperCase should not be set")
-	}
-
-	if Config.LowerCase {
-		t.Error("Config.LowerCase should not be set")
-	}
-
-	if Config.Digits {
-		t.Error("Config.Digits should not be set")
-	}
-
-	if Config.Symbols {
-		t.Error("Config.Symbols should not be set")
-	}
-
-	if Config.ShowHelp {
-		t.Error("Config.ShowHelp should not be set")
-	}
-
-	if Config.Version {
-		t.Error("Config.Version should not be set")
-	}
-
-	if Config.Excluded != "" {
-		t.Errorf("Config.Excluded should be empty (%s)", Config.Excluded)
-	}
-
-	if !Config.WeakChars {
-		t.Error("Config.WeakChars *SHOULD* be set")
-	}
+	assert.False(t, Config.UpperCase)
+	assert.False(t, Config.LowerCase)
+	assert.False(t, Config.Digits)
+	assert.False(t, Config.Symbols)
+	assert.False(t, Config.ShowHelp)
+	assert.False(t, Config.Version)
+	assert.Empty(t, Config.Excluded)
+	assert.True(t, Config.WeakChars)
 }
 
 func TestParseNoArg(t *testing.T) {
@@ -102,37 +77,14 @@ func TestParseNoArg(t *testing.T) {
 
 	Parse(fs)
 
-	if Config.UpperCase {
-		t.Error("Config.UpperCase should not be set")
-	}
-
-	if Config.LowerCase {
-		t.Error("Config.LowerCase should not be set")
-	}
-
-	if Config.Digits {
-		t.Error("Config.Digits should not be set")
-	}
-
-	if Config.Symbols {
-		t.Error("Config.Symbols should not be set")
-	}
-
-	if Config.ShowHelp {
-		t.Error("Config.ShowHelp should not be set")
-	}
-
-	if Config.Version {
-		t.Error("Config.Version should not be set")
-	}
-
-	if Config.Excluded != "" {
-		t.Errorf("Config.Excluded should be empty (%s)", Config.Excluded)
-	}
-
-	if Config.WeakChars {
-		t.Error("Config.WeakChars should not be set")
-	}
+	assert.False(t, Config.UpperCase)
+	assert.False(t, Config.LowerCase)
+	assert.False(t, Config.Digits)
+	assert.False(t, Config.Symbols)
+	assert.False(t, Config.ShowHelp)
+	assert.False(t, Config.Version)
+	assert.Empty(t, Config.Excluded)
+	assert.False(t, Config.WeakChars)
 
 }
 

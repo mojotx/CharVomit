@@ -10,6 +10,8 @@ import (
 
 	"github.com/mojotx/CharVomit/pkg/CharVomit"
 	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type failingWriter struct {
@@ -22,104 +24,59 @@ func (w failingWriter) Write([]byte) (int, error) {
 
 func TestResolveConfigUses32CharacterDefault(t *testing.T) {
 	cfg, err := resolveConfig(nil)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
-	if cfg.PasswordLen != 32 {
-		t.Fatalf("expected default password length 32, got %d", cfg.PasswordLen)
-	}
-	if cfg.WeakChars || cfg.Symbols {
-		t.Fatalf("expected no character class flags by default, got %+v", cfg)
-	}
+	assert.Equal(t, 32, cfg.PasswordLen)
+	assert.False(t, cfg.WeakChars)
+	assert.False(t, cfg.Symbols)
 
 	var cv CharVomit.CharVomit
-	if err := cv.SetAcceptableChars(cfg); err != nil {
-		t.Fatalf("unexpected error setting default characters: %v", err)
-	}
+	require.NoError(t, cv.SetAcceptableChars(cfg))
 
 	expectedPool := CharVomit.DefaultChars
-	if cv.AcceptableChars != expectedPool {
-		t.Fatalf("expected default character pool %q, got %q", expectedPool, cv.AcceptableChars)
-	}
-
-	if strings.ContainsAny(cv.AcceptableChars, "0O1l") {
-		t.Fatal("default character pool contains ambiguous characters")
-	}
+	assert.Equal(t, expectedPool, cv.AcceptableChars)
+	assert.False(t, strings.ContainsAny(cv.AcceptableChars, "0O1l"))
 }
 
 func TestResolveConfigAcceptsSymbolsAlias(t *testing.T) {
 	cfg, err := resolveConfig([]string{"-s", "-u", "12"})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
-	if cfg.PasswordLen != 12 {
-		t.Fatalf("expected password length 12, got %d", cfg.PasswordLen)
-	}
-
-	if !cfg.UpperCase {
-		t.Fatal("expected uppercase characters to be enabled")
-	}
-
-	if !cfg.Symbols {
-		t.Fatal("expected symbols to be enabled")
-	}
+	assert.Equal(t, 12, cfg.PasswordLen)
+	assert.True(t, cfg.UpperCase)
+	assert.True(t, cfg.Symbols)
 }
 
 func TestWritePasswordToFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "password.txt")
 
-	if err := writePassword("abc123", path, nil); err != nil {
-		t.Fatalf("unexpected error writing file: %v", err)
-	}
+	require.NoError(t, writePassword("abc123", path, nil))
 
 	content, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read file failed: %v", err)
-	}
-
-	if got := string(content); got != "abc123\n" {
-		t.Fatalf("unexpected file content: %q", got)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, "abc123\n", string(content))
 
 	info, err := os.Stat(path)
-	if err != nil {
-		t.Fatalf("stat file failed: %v", err)
-	}
-	if got, want := info.Mode().Perm(), os.FileMode(0o600); got != want {
-		t.Fatalf("expected file mode %o, got %o", want, got)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 }
 
 func TestWritePasswordRestrictsExistingFilePermissions(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "password.txt")
-	if err := os.WriteFile(path, []byte("old password\n"), 0o644); err != nil {
-		t.Fatalf("create existing file failed: %v", err)
-	}
-	if err := os.Chmod(path, 0o644); err != nil {
-		t.Fatalf("set existing file mode failed: %v", err)
-	}
+	require.NoError(t, os.WriteFile(path, []byte("old password\n"), 0o644))
+	require.NoError(t, os.Chmod(path, 0o644))
 
-	if err := writePassword("abc123", path, nil); err != nil {
-		t.Fatalf("unexpected error overwriting file: %v", err)
-	}
+	require.NoError(t, writePassword("abc123", path, nil))
 
 	info, err := os.Stat(path)
-	if err != nil {
-		t.Fatalf("stat file failed: %v", err)
-	}
-	if got, want := info.Mode().Perm(), os.FileMode(0o600); got != want {
-		t.Fatalf("expected file mode %o, got %o", want, got)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 }
 
 func TestWritePasswordReturnsStandardOutputError(t *testing.T) {
 	want := errors.New("broken pipe")
 	err := writePassword("abc123", "", failingWriter{err: want})
-	if !errors.Is(err, want) {
-		t.Fatalf("expected stdout error %v, got %v", want, err)
-	}
+	assert.ErrorIs(t, err, want)
 }
 
 func TestRootCommandPrintsVersion(t *testing.T) {
@@ -131,11 +88,7 @@ func TestRootCommandPrintsVersion(t *testing.T) {
 		rootCmd.SetOut(nil)
 	})
 
-	if err := rootCmd.Execute(); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, rootCmd.Execute())
 
-	if got, want := output.String(), "CharVomit version "+arg.Version()+"\n"; got != want {
-		t.Fatalf("expected version output %q, got %q", want, got)
-	}
+	assert.Equal(t, "CharVomit version "+arg.Version()+"\n", output.String())
 }
