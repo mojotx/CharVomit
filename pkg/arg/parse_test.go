@@ -253,6 +253,29 @@ func TestParseFlagSetCanBeReused(t *testing.T) {
 	assert.True(t, Config.LowerCase)
 }
 
+func TestParseArgsReturnsValuesFromProvidedFlagSet(t *testing.T) {
+	localCfg := ConfigType{}
+	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
+	fs.BoolVar(&localCfg.UpperCase, "u", false, "use upper-case letters")
+	fs.BoolVar(&localCfg.LowerCase, "l", false, "use lower-case letters")
+	fs.BoolVar(&localCfg.Digits, "d", false, "use numeric digits")
+	fs.BoolVar(&localCfg.Symbols, "s", false, "use symbols: !#%+:=?@")
+	fs.BoolVar(&localCfg.WeakChars, "w", false, "use weak characters")
+	fs.BoolVar(&localCfg.ShowHelp, "h", false, "show help and exit")
+	fs.BoolVar(&localCfg.Version, "v", false, "show version")
+	fs.StringVar(&localCfg.Excluded, "x", "", "excluded characters")
+
+	cfg, exitAfter, rc := ParseArgs([]string{"-u", "-s", "12"}, fs)
+
+	assert.False(t, exitAfter)
+	assert.Zero(t, rc)
+	assert.Equal(t, 12, cfg.PasswordLen)
+	assert.True(t, cfg.UpperCase)
+	assert.True(t, cfg.Symbols)
+	assert.False(t, cfg.LowerCase)
+	assert.Equal(t, Config, cfg)
+}
+
 func TestParseHelp(t *testing.T) {
 	// Save the original command-line arguments and restore them after the test.
 	oldArgs := os.Args
@@ -284,7 +307,7 @@ func TestParseHelp(t *testing.T) {
 
 	// Check if the parsed configuration matches the expected values
 	expectedConfig := ConfigType{
-		PasswordLen: 0,
+		PasswordLen: 32,
 		Digits:      false,
 		ShowHelp:    true,
 		LowerCase:   false,

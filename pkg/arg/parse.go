@@ -84,6 +84,35 @@ func resetFlagSetDefaults(fs *flag.FlagSet) {
 	})
 }
 
+func readBoolFlag(fs *flag.FlagSet, name string) bool {
+	flagValue := fs.Lookup(name)
+	if flagValue == nil {
+		return false
+	}
+
+	value, err := strconv.ParseBool(flagValue.Value.String())
+	if err != nil {
+		return false
+	}
+	return value
+}
+
+func readConfigFromFlagSet(fs *flag.FlagSet) ConfigType {
+	cfg := ConfigType{}
+	cfg.Digits = readBoolFlag(fs, "d")
+	cfg.ShowHelp = readBoolFlag(fs, "h")
+	cfg.LowerCase = readBoolFlag(fs, "l")
+	cfg.Symbols = readBoolFlag(fs, "s")
+	cfg.UpperCase = readBoolFlag(fs, "u")
+	cfg.WeakChars = readBoolFlag(fs, "w")
+	cfg.Version = readBoolFlag(fs, "v")
+	if flagValue := fs.Lookup("x"); flagValue != nil {
+		cfg.Excluded = flagValue.Value.String()
+	}
+	cfg.PasswordLen = 32
+	return cfg
+}
+
 // ParseArgs parses CLI arguments into a ConfigType without relying on package-level state.
 func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool, rc int) {
 	Config = ConfigType{}
@@ -100,25 +129,28 @@ func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool,
 		return cfg, true, 1
 	}
 
-	cfg = Config
+	cfg = readConfigFromFlagSet(fs)
 	if cfg.Version {
 		_, _ = fmt.Fprintln(output, Version())
+		Config = cfg
 		return cfg, true, 0
 	}
 	if cfg.ShowHelp {
 		fs.Usage()
+		Config = cfg
 		return cfg, true, 0
 	}
 	if fs.NArg() > 1 {
 		_, _ = fmt.Fprintf(output, "too many arguments: expected at most 1 positional length, got %d\n", fs.NArg())
+		Config = cfg
 		return cfg, true, 1
 	}
 
-	cfg.PasswordLen = 32
 	if fs.NArg() == 1 {
 		parsedLen, err := strconv.Atoi(fs.Arg(0))
 		if err != nil {
 			_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
+			Config = cfg
 			return cfg, true, 1
 		}
 
