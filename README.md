@@ -113,3 +113,5 @@ go install -v github.com/mojotx/CharVomit/v2/cmd/CharVomit@latest
 ```
 
 Alternatively, you can download the latest [release](https://github.com/mojotx/CharVomit/releases).
+
+See [RELEASING.md](RELEASING.md) for maintainer release steps.
