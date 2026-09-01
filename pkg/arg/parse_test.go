@@ -214,6 +214,45 @@ func TestParse(t *testing.T) {
 	fs.SetOutput(oldOutput)
 }
 
+func TestParseConfigReturnsValue(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	Config = ConfigType{}
+	os.Args = []string{"CharVomit", "-u", "-l", "8"}
+
+	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
+	cfg, exitAfter, rc := ParseConfig(fs)
+
+	assert.False(t, exitAfter)
+	assert.Zero(t, rc)
+	assert.Equal(t, 8, cfg.PasswordLen)
+	assert.True(t, cfg.UpperCase)
+	assert.True(t, cfg.LowerCase)
+	assert.False(t, cfg.WeakChars)
+	assert.Equal(t, Config, cfg)
+}
+
+func TestParseFlagSetCanBeReused(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	os.Args = []string{"CharVomit", "-u", "8"}
+	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
+	_, rc := Parse(fs)
+	assert.Zero(t, rc)
+	assert.Equal(t, 8, Config.PasswordLen)
+	assert.True(t, Config.UpperCase)
+	assert.False(t, Config.LowerCase)
+
+	os.Args = []string{"CharVomit", "-l", "12"}
+	_, rc = Parse(fs)
+	assert.Zero(t, rc)
+	assert.Equal(t, 12, Config.PasswordLen)
+	assert.False(t, Config.UpperCase)
+	assert.True(t, Config.LowerCase)
+}
+
 func TestParseHelp(t *testing.T) {
 	// Save the original command-line arguments and restore them after the test.
 	oldArgs := os.Args

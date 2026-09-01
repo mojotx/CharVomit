@@ -12,33 +12,27 @@ import (
 var fs *flag.FlagSet
 
 func init() {
-	fs = flag.NewFlagSet("DynamicParser", flag.ExitOnError)
+	fs = flag.NewFlagSet("DynamicParser", flag.ContinueOnError)
 }
 
 // TO-DO:
 // - Add support for duplicate character checking
 func main() {
-
-	shouldExit, rc := arg.Parse(fs)
+	cfg, shouldExit, rc := arg.ParseArgs(os.Args[1:], fs)
 	if shouldExit {
 		os.Exit(rc)
 	}
 
-	if arg.Config.ShowHelp {
-		arg.Usage()
-		os.Exit(0)
-	}
-
 	var cv CharVomit.CharVomit
 
-	if err := cv.SetAcceptableChars(arg.Config); err != nil {
+	if err := cv.SetAcceptableChars(cfg); err != nil {
 		fmt.Printf("could not set acceptable chars: %s\n", err.Error())
 		os.Exit(1)
 	}
 
-	pw, err := cv.Puke(arg.Config.PasswordLen)
+	pw, err := cv.Puke(cfg.PasswordLen)
 	if err != nil {
-		fmt.Printf("Puke(%d) error: %s", arg.Config.PasswordLen, err.Error())
+		fmt.Printf("Puke(%d) error: %s", cfg.PasswordLen, err.Error())
 		os.Exit(1)
 	}
 

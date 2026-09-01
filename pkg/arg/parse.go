@@ -60,63 +60,81 @@ func makeUsageFunc(fs *flag.FlagSet) func() {
 	}
 }
 
-// RegisterFlags registers all command-line flags with the given FlagSet
-func RegisterFlags(fs *flag.FlagSet) {
-	fs.BoolVar(&Config.UpperCase, "u", false, "use upper-case letters")
-	fs.BoolVar(&Config.LowerCase, "l", false, "use lower-case letters")
-	fs.BoolVar(&Config.Digits, "d", false, "use numeric digits")
-	fs.BoolVar(&Config.Symbols, "s", false, "use symbols: !#%+:=?@")
-	fs.BoolVar(&Config.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
-	fs.BoolVar(&Config.ShowHelp, "h", false, "show help and exit")
-	fs.BoolVar(&Config.Version, "v", false, "show version")
-	fs.StringVar(&Config.Excluded, "x", "", "excluded characters (will be removed)")
+// RegisterFlags registers all command-line flags with the given FlagSet and target config.
+func RegisterFlags(fs *flag.FlagSet, cfg *ConfigType) {
+	fs.BoolVar(&cfg.UpperCase, "u", false, "use upper-case letters")
+	fs.BoolVar(&cfg.LowerCase, "l", false, "use lower-case letters")
+	fs.BoolVar(&cfg.Digits, "d", false, "use numeric digits")
+	fs.BoolVar(&cfg.Symbols, "s", false, "use symbols: !#%+:=?@")
+	fs.BoolVar(&cfg.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
+	fs.BoolVar(&cfg.ShowHelp, "h", false, "show help and exit")
+	fs.BoolVar(&cfg.Version, "v", false, "show version")
+	fs.StringVar(&cfg.Excluded, "x", "", "excluded characters (will be removed)")
 }
 
-func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
+func resetFlagSetDefaults(fs *flag.FlagSet) {
+	fs.VisitAll(func(f *flag.Flag) {
+		_ = fs.Set(f.Name, f.DefValue)
+	})
+}
 
+// ParseArgs parses CLI arguments into a ConfigType without relying on package-level state.
+func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool, rc int) {
+	Config = ConfigType{}
 	output := fs.Output()
-
 	fs.Usage = makeUsageFunc(fs)
-	RegisterFlags(fs)
+	if fs.Lookup("u") == nil {
+		RegisterFlags(fs, &Config)
+	}
+	resetFlagSetDefaults(fs)
 
-	if err := fs.Parse(os.Args[1:]); err != nil {
+	if err := fs.Parse(args); err != nil {
 		_, _ = fmt.Fprintf(output, "cannot parse os.Args[1:]: %s\n", err.Error())
-		exitAfter = true
-		rc = 1
-	} else if Config.Version {
+		cfg = Config
+		return cfg, true, 1
+	}
+
+	cfg = Config
+	if cfg.Version {
 		_, _ = fmt.Fprintln(output, Version())
-		exitAfter = true
-		rc = 0
-	} else if Config.ShowHelp {
+		return cfg, true, 0
+	}
+	if cfg.ShowHelp {
 		fs.Usage()
-		exitAfter = true
-		rc = 0
-	} else {
-		if fs.NArg() > 1 {
-			_, _ = fmt.Fprintf(output, "too many arguments: expected at most 1 positional length, got %d\n", fs.NArg())
-			exitAfter = true
-			rc = 1
-			return
+		return cfg, true, 0
+	}
+	if fs.NArg() > 1 {
+		_, _ = fmt.Fprintf(output, "too many arguments: expected at most 1 positional length, got %d\n", fs.NArg())
+		return cfg, true, 1
+	}
+
+	cfg.PasswordLen = 32
+	if fs.NArg() == 1 {
+		parsedLen, err := strconv.Atoi(fs.Arg(0))
+		if err != nil {
+			_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
+			return cfg, true, 1
 		}
 
-		// default to 32 characters unless a single explicit length is provided
-		Config.PasswordLen = 32
-
-		if fs.NArg() == 1 {
-			Config.PasswordLen, err = strconv.Atoi(fs.Arg(0))
-			if err != nil {
-				_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
-				exitAfter = true
-				rc = 1
-				return
-			}
-
-			// Get absolute value
-			if Config.PasswordLen < 0 {
-				Config.PasswordLen = Config.PasswordLen * -1
-			}
+		cfg.PasswordLen = parsedLen
+		if cfg.PasswordLen < 0 {
+			cfg.PasswordLen *= -1
 		}
 	}
 
-	return
+	Config = cfg
+	return cfg, false, 0
+}
+
+// ParseConfig is kept as a compatibility wrapper around ParseArgs.
+func ParseConfig(fs *flag.FlagSet) (cfg ConfigType, exitAfter bool, rc int) {
+	cfg, exitAfter, rc = ParseArgs(os.Args[1:], fs)
+	Config = cfg
+	return cfg, exitAfter, rc
+}
+
+func Parse(fs *flag.FlagSet) (exitAfter bool, rc int) {
+	cfg, exitAfter, rc := ParseArgs(os.Args[1:], fs)
+	Config = cfg
+	return exitAfter, rc
 }
