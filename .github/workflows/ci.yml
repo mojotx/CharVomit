@@ -42,6 +42,11 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test
+        # -ld_classic works around a Go/Xcode linker bug that omits LC_UUID
+        # from race-instrumented binaries on macOS runners, causing dyld to
+        # abort at test-run time (https://github.com/golang/go/issues/61229).
+        env:
+          CGO_LDFLAGS: ${{ matrix.os == 'macos-latest' && '-Wl,-ld_classic' || '' }}
         run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
       - name: Coverage summary
         if: always()

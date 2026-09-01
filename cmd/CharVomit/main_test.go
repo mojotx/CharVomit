@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -72,6 +73,12 @@ func TestWritePasswordToFile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "abc123\n", string(content))
 
+	if runtime.GOOS == "windows" {
+		// NTFS has no POSIX permission bits; os.Chmod can only toggle the
+		// read-only attribute, so 0600 isn't representable here.
+		return
+	}
+
 	info, err := os.Stat(path)
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
@@ -83,6 +90,12 @@ func TestWritePasswordRestrictsExistingFilePermissions(t *testing.T) {
 	require.NoError(t, os.Chmod(path, 0o644))
 
 	require.NoError(t, writePassword("abc123", path, nil))
+
+	if runtime.GOOS == "windows" {
+		// NTFS has no POSIX permission bits; os.Chmod can only toggle the
+		// read-only attribute, so 0600 isn't representable here.
+		return
+	}
 
 	info, err := os.Stat(path)
 	require.NoError(t, err)
