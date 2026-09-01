@@ -18,14 +18,14 @@ Usage: CharVomit [ length ] [flags]
 
 If a password length is not specified, 32 is used. With no character flags,
 the default is equivalent to `CharVomit 32 -w -s`: weak, non-ambiguous
-characters plus symbols. The `-d` flag is redundant with `-w` because the weak
-pool already contains the non-ambiguous digits.
+characters plus symbols. The `-d` flag cannot be combined with `-w`: `CharVomit -w -d`
+is rejected, since the weak pool already contains the non-ambiguous digits.
 
 Other optional flags are:
     -d, --digits           use numeric digits
     -h, --help             show help and exit
     -l, --lowercase        use lower-case letters
-    -o, --output-file      write the generated password to a file instead of stdout
+    -o, --output-file string   write the generated password to a file instead of stdout
     -s, --symbols          use symbols: !#%+:=?@
     -u, --uppercase        use upper-case letters
     -v, --version          show version
@@ -54,9 +54,10 @@ The module path is now `github.com/mojotx/CharVomit/v2`. If you imported
 `pkg/arg` or `pkg/CharVomit` as a library, update your import paths
 accordingly. The `pkg/arg.ParseArgs`, `ParseConfig`, `Parse`, `Usage`,
 `RegisterFlags` functions and package-global `Config` variable have been
-removed, as has `RemoveIndex`; none were reachable from the CLI, which has
-used `github.com/spf13/cobra` for flag parsing since v2.0.0. Build an
-`arg.ConfigType` directly instead — see "Library usage" below.
+removed, as has `RemoveIndex`. This release replaces that legacy
+stdlib-`flag`-based parser, which `main.go` called directly, with
+`github.com/spf13/cobra`. Build an `arg.ConfigType` directly instead — see
+"Library usage" below.
 
 ## Library usage
 
