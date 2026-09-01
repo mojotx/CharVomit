@@ -1,7 +1,9 @@
 
 # CharVomit
 
-![Go Coverage](https://raw.githubusercontent.com/mojotx/CharVomit/master/coverage_badge.png)
+[![CI](https://github.com/mojotx/CharVomit/actions/workflows/ci.yml/badge.svg)](https://github.com/mojotx/CharVomit/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/mojotx/CharVomit/actions/workflows/codeql.yml/badge.svg)](https://github.com/mojotx/CharVomit/actions/workflows/codeql.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/mojotx/CharVomit.svg)](https://pkg.go.dev/github.com/mojotx/CharVomit)
 
 Generate random passwords using Go's
 [crypto/rand](https://golang.org/pkg/crypto/rand/) functions.
