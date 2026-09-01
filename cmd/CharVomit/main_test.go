@@ -3,13 +3,15 @@ package main
 import (
 	"bytes"
 	"errors"
+	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/mojotx/CharVomit/pkg/CharVomit"
-	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/mojotx/CharVomit/v2/pkg/CharVomit"
+	"github.com/mojotx/CharVomit/v2/pkg/arg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,6 +38,14 @@ func TestResolveConfigUses32CharacterDefault(t *testing.T) {
 	expectedPool := CharVomit.DefaultChars
 	assert.Equal(t, expectedPool, cv.AcceptableChars)
 	assert.False(t, strings.ContainsAny(cv.AcceptableChars, "0O1l"))
+}
+
+func TestResolveConfigRejectsMinIntLength(t *testing.T) {
+	// math.MinInt negated overflows back to itself; make sure that's reported
+	// as an out-of-range error instead of silently passing through negative.
+	_, err := resolveConfig([]string{strconv.Itoa(math.MinInt)})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "out of range")
 }
 
 func TestResolveCommandConfigAcceptsSymbolsAlias(t *testing.T) {

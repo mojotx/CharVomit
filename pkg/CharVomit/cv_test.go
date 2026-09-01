@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/mojotx/CharVomit/v2/pkg/arg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -178,6 +178,17 @@ func TestSetAcceptableChars(t *testing.T) {
 		}
 		err := cv.SetAcceptableChars(config)
 		assert.Error(t, err)
+	})
+
+	t.Run("Weak characters with symbols", func(t *testing.T) {
+		cv := NewCharVomit("")
+		config := arg.ConfigType{
+			WeakChars: true,
+			Symbols:   true,
+		}
+		err := cv.SetAcceptableChars(config)
+		assert.NoError(t, err)
+		assert.Equal(t, WeakChars+DefaultSymbols, cv.AcceptableChars)
 	})
 
 	t.Run("Weak characters with exclusions", func(t *testing.T) {

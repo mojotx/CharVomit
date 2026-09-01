@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mojotx/CharVomit/pkg/CharVomit"
-	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/mojotx/CharVomit/v2/pkg/CharVomit"
+	"github.com/mojotx/CharVomit/v2/pkg/arg"
 )
 
 var rootCmd = &cobra.Command{
@@ -53,10 +53,14 @@ func resolveConfig(args []string) (arg.ConfigType, error) {
 		return cfg, fmt.Errorf("cannot parse argument '%s': %w", args[0], err)
 	}
 
-	cfg.PasswordLen = parsedLen
-	if cfg.PasswordLen < 0 {
-		cfg.PasswordLen *= -1
+	if parsedLen < 0 {
+		negated := -parsedLen
+		if negated < 0 {
+			return cfg, fmt.Errorf("password length %d is out of range", parsedLen)
+		}
+		parsedLen = negated
 	}
+	cfg.PasswordLen = parsedLen
 
 	return cfg, nil
 }

@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/mojotx/CharVomit/v2/pkg/arg"
 )
 
 // CharVomit package generates random passwords

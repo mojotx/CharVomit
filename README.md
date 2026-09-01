@@ -3,7 +3,7 @@
 
 [![CI](https://github.com/mojotx/CharVomit/actions/workflows/ci.yml/badge.svg)](https://github.com/mojotx/CharVomit/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mojotx/CharVomit/actions/workflows/codeql.yml/badge.svg)](https://github.com/mojotx/CharVomit/actions/workflows/codeql.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/mojotx/CharVomit.svg)](https://pkg.go.dev/github.com/mojotx/CharVomit)
+[![Go Reference](https://pkg.go.dev/badge/github.com/mojotx/CharVomit/v2.svg)](https://pkg.go.dev/github.com/mojotx/CharVomit/v2)
 
 Generate random passwords using Go's
 [crypto/rand](https://golang.org/pkg/crypto/rand/) functions.
@@ -32,8 +32,6 @@ Other optional flags are:
     -w, --weak             use weak characters (2-9, A-N, P-Z, a-k, m-z)
     -x, --exclude string   excluded characters (will be removed)
 
-Note that optional flags must precede the password length.
-
 By default, CharVomit writes the generated password to standard output. To
 avoid exposing the password in terminal scrollback or shell history, prefer
 --output-file / -o and write it to a secure local file.
@@ -49,6 +47,16 @@ such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,
 by using the -u, -l, and -d flags. The default is equivalent to `CharVomit 32 -w -s`.
 
 ```
+
+## Breaking changes in v2.0.0
+
+The module path is now `github.com/mojotx/CharVomit/v2`. If you imported
+`pkg/arg` or `pkg/CharVomit` as a library, update your import paths
+accordingly. The `pkg/arg.ParseArgs`, `ParseConfig`, `Parse`, `Usage`,
+`RegisterFlags` functions and package-global `Config` variable have been
+removed, as has `RemoveIndex`; none were reachable from the CLI, which has
+used `github.com/spf13/cobra` for flag parsing since v2.0.0. Build an
+`arg.ConfigType` directly instead — see "Library usage" below.
 
 ## Library usage
 
@@ -96,7 +104,7 @@ Xl!bXDnZC@srbxBDNzdj
 If you have a Go compiler installed, you can use this command:
 
 ```shell
-go install -v github.com/mojotx/CharVomit/cmd/CharVomit@latest
+go install -v github.com/mojotx/CharVomit/v2/cmd/CharVomit@latest
 ```
 
 Alternatively, you can download the latest [release](https://github.com/mojotx/CharVomit/releases).

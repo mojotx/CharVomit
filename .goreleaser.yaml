@@ -12,7 +12,7 @@ builds:
   - main: ./cmd/CharVomit
     binary: charvomit
     ldflags:
-      - -X github.com/mojotx/CharVomit/pkg/arg.CharVomitVersion={{ .Tag }}-0-g{{ .ShortCommit }}
+      - -X github.com/mojotx/CharVomit/v2/pkg/arg.CharVomitVersion={{ .Tag }}-0-g{{ .ShortCommit }}
     goos:
       - linux
       - windows

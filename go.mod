@@ -1,4 +1,4 @@
-module github.com/mojotx/CharVomit
+module github.com/mojotx/CharVomit/v2
 
 go 1.22
 
