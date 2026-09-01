@@ -33,3 +33,4 @@ CI also runs `go vet ./...` as its own step, but that's redundant to run locally
 - Use `github.com/spf13/cobra` for Go CLI applications
 - prefer `github.com/rs/zerolog` for logging
 - Suggested git commit messages should follow best practices: 50 characters for the first line, a blank line, and then 72 characters max for following lines
+- Use the `gh` GitHub CLI tool if you need to view PR status, comments, issues, etc.
