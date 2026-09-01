@@ -115,34 +115,30 @@ func readConfigFromFlagSet(fs *flag.FlagSet) ConfigType {
 
 // ParseArgs parses CLI arguments into a ConfigType without relying on package-level state.
 func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool, rc int) {
-	Config = ConfigType{}
+	localConfig := ConfigType{}
 	output := fs.Output()
 	fs.Usage = makeUsageFunc(fs)
 	if fs.Lookup("u") == nil {
-		RegisterFlags(fs, &Config)
+		RegisterFlags(fs, &localConfig)
 	}
 	resetFlagSetDefaults(fs)
 
 	if err := fs.Parse(args); err != nil {
 		_, _ = fmt.Fprintf(output, "cannot parse args: %s\n", err.Error())
-		cfg = Config
-		return cfg, true, 1
+		return localConfig, true, 1
 	}
 
 	cfg = readConfigFromFlagSet(fs)
 	if cfg.Version {
 		_, _ = fmt.Fprintln(output, Version())
-		Config = cfg
 		return cfg, true, 0
 	}
 	if cfg.ShowHelp {
 		fs.Usage()
-		Config = cfg
 		return cfg, true, 0
 	}
 	if fs.NArg() > 1 {
 		_, _ = fmt.Fprintf(output, "too many arguments: expected at most 1 positional length, got %d\n", fs.NArg())
-		Config = cfg
 		return cfg, true, 1
 	}
 
@@ -150,7 +146,6 @@ func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool,
 		parsedLen, err := strconv.Atoi(fs.Arg(0))
 		if err != nil {
 			_, _ = fmt.Fprintf(output, "cannot parse argument '%+v': %s\n", fs.Arg(0), err.Error())
-			Config = cfg
 			return cfg, true, 1
 		}
 
@@ -160,7 +155,6 @@ func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool,
 		}
 	}
 
-	Config = cfg
 	return cfg, false, 0
 }
 

@@ -3,12 +3,16 @@ package arg
 import (
 	"bytes"
 	"flag"
+	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const needle = `If a password length is not specified, 32 is used.`
@@ -206,6 +210,7 @@ func TestParseFlagSetCanBeReused(t *testing.T) {
 }
 
 func TestParseArgsReturnsValuesFromProvidedFlagSet(t *testing.T) {
+	Config = ConfigType{PasswordLen: 99}
 	localCfg := ConfigType{}
 	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
 	fs.BoolVar(&localCfg.UpperCase, "u", false, "use upper-case letters")
@@ -225,7 +230,51 @@ func TestParseArgsReturnsValuesFromProvidedFlagSet(t *testing.T) {
 	assert.True(t, cfg.UpperCase)
 	assert.True(t, cfg.Symbols)
 	assert.False(t, cfg.LowerCase)
-	assert.Equal(t, Config, cfg)
+	assert.Equal(t, ConfigType{PasswordLen: 99}, Config)
+}
+
+func TestParseArgsSupportsConcurrentFlagSets(t *testing.T) {
+	type result struct {
+		cfg ConfigType
+		err error
+	}
+
+	args := [][]string{{"-u", "12"}, {"-l", "8"}}
+	results := make(chan result, len(args))
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+
+	for _, testArgs := range args {
+		wg.Add(1)
+		go func(args []string) {
+			defer wg.Done()
+			fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
+			fs.SetOutput(io.Discard)
+			<-start
+			cfg, exitAfter, rc := ParseArgs(args, fs)
+			if exitAfter || rc != 0 {
+				results <- result{err: fmt.Errorf("unexpected parse result: exitAfter=%t rc=%d", exitAfter, rc)}
+				return
+			}
+			results <- result{cfg: cfg}
+		}(testArgs)
+	}
+
+	close(start)
+	wg.Wait()
+	close(results)
+
+	var configs []ConfigType
+	for result := range results {
+		require.NoError(t, result.err)
+		configs = append(configs, result.cfg)
+	}
+
+	require.Len(t, configs, 2)
+	assert.ElementsMatch(t, []ConfigType{
+		{PasswordLen: 12, UpperCase: true},
+		{PasswordLen: 8, LowerCase: true},
+	}, configs)
 }
 
 func TestParseArgsReportsCustomArgs(t *testing.T) {
