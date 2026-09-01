@@ -82,6 +82,36 @@ func TestWritePasswordToFile(t *testing.T) {
 	if got := string(content); got != "abc123\n" {
 		t.Fatalf("unexpected file content: %q", got)
 	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat file failed: %v", err)
+	}
+	if got, want := info.Mode().Perm(), os.FileMode(0o600); got != want {
+		t.Fatalf("expected file mode %o, got %o", want, got)
+	}
+}
+
+func TestWritePasswordRestrictsExistingFilePermissions(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "password.txt")
+	if err := os.WriteFile(path, []byte("old password\n"), 0o644); err != nil {
+		t.Fatalf("create existing file failed: %v", err)
+	}
+	if err := os.Chmod(path, 0o644); err != nil {
+		t.Fatalf("set existing file mode failed: %v", err)
+	}
+
+	if err := writePassword("abc123", path, nil); err != nil {
+		t.Fatalf("unexpected error overwriting file: %v", err)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat file failed: %v", err)
+	}
+	if got, want := info.Mode().Perm(), os.FileMode(0o600); got != want {
+		t.Fatalf("expected file mode %o, got %o", want, got)
+	}
 }
 
 func TestWritePasswordReturnsStandardOutputError(t *testing.T) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -129,10 +130,17 @@ func resolveCommandConfig(cmd *cobra.Command, args []string) (arg.ConfigType, er
 
 func writePassword(password, outputFile string, output io.Writer) error {
 	if outputFile != "" {
-		if err := os.WriteFile(outputFile, []byte(password+"\n"), 0o600); err != nil {
+		file, err := os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+		if err != nil {
 			return err
 		}
-		return nil
+		if err := file.Chmod(0o600); err != nil {
+			return errors.Join(err, file.Close())
+		}
+		if _, err := fmt.Fprintln(file, password); err != nil {
+			return errors.Join(err, file.Close())
+		}
+		return file.Close()
 	}
 
 	if outputFile == "" {
