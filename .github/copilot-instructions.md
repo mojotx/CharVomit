@@ -1,4 +1,4 @@
-# gfi-finder
+# CharVomit
 
 ## Environment
 
