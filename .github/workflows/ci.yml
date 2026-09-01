@@ -32,10 +32,7 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-          # Cache disabled on macOS: a suspected stale/corrupt build cache is
-          # one candidate for the "missing LC_UUID" dyld abort seen there
-          # even without -race (see README "Known CI limitations").
-          cache: ${{ matrix.os != 'macos-latest' }}
+          cache: true
       - name: Verify modules are tidy
         run: |
           go mod tidy
@@ -45,15 +42,16 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test
-        # -race is skipped on macOS: race-instrumented binaries trigger a
-        # dyld "missing LC_UUID load command" abort on macos-latest runners
-        # (https://github.com/golang/go/issues/61229). -extldflags=-ld_classic
-        # was tried and did not resolve it. ubuntu and windows are unaffected.
-        env:
-          GO_TEST_RACE: ${{ matrix.os != 'macos-latest' && '-race' || '' }}
-        run: go test $GO_TEST_RACE -covermode=atomic -coverprofile=coverage.out ./...
+        # Test execution is skipped on macOS: every compiled test binary
+        # aborts with dyld "missing LC_UUID load command" on macos-latest
+        # runners (https://github.com/golang/go/issues/61229), reproducing
+        # with or without -race and with the build cache disabled, so it's
+        # not something under our control. `go build` above still catches
+        # macOS-specific compile issues; see README "Known CI limitations".
+        if: matrix.os != 'macos-latest'
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
       - name: Coverage summary
-        if: always()
+        if: always() && matrix.os != 'macos-latest'
         run: |
           {
             echo "### Coverage (${{ matrix.os }})"
@@ -63,7 +61,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage artifact
-        if: always()
+        if: always() && matrix.os != 'macos-latest'
         uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.os }}

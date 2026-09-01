@@ -101,7 +101,8 @@ Xl!bXDnZC@srbxBDNzdj
 
 ## Known CI limitations
 
-* **2026-09-01**: The macOS job in [ci.yml](.github/workflows/ci.yml) has been failing test *execution* with `dyld: missing LC_UUID load command` (https://github.com/golang/go/issues/61229). Originally suspected to be race-detector/external-linking specific, but it reproduces even with `-race` removed, so the cause is broader than that — not reproducible on a current local machine, only on the `macos-latest` runner. `-race` stays disabled there for now, and the runner's Go build cache has been turned off as the next diagnostic attempt (suspected stale/corrupt cache producing a malformed binary). Revisit once this is root-caused or GitHub updates the runner image: re-enable the cache and `-race` for macOS in ci.yml if the underlying issue is gone.
+* **2026-09-01**: The macOS job in [ci.yml](.github/workflows/ci.yml) only runs `go build`, not `go test` — every compiled test binary aborts with `dyld: missing LC_UUID load command` on `macos-latest` runners (https://github.com/golang/go/issues/61229). This reproduces with or without `-race` and with the Go build cache disabled, so it isn't something under our control (also not reproducible on a current local machine, only on that runner). Revisit periodically: once this is root-caused or GitHub updates the runner image, re-enable the `Test`/`Coverage summary`/`Upload coverage artifact` steps for macOS in ci.yml (drop their `if: matrix.os != 'macos-latest'` conditions).
+* The primary maintainer develops on macOS and always runs `go test` there locally before pushing, which mitigates the gap in macOS test coverage left by the limitation above.
 
 ## Installation
 
