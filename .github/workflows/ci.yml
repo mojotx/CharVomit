@@ -3,7 +3,6 @@ name: ci
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
     branches: [main]
 # Cancel superseded runs on the same ref (e.g. force-pushes to a PR branch).
