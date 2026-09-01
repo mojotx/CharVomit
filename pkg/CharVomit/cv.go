@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/mojotx/CharVomit/v2/pkg/arg"
 )
 
 // CharVomit package generates random passwords
@@ -81,12 +81,9 @@ func (c *CharVomit) SetAcceptableChars(config arg.ConfigType) error {
 	// Initialize to nothing
 	c.AcceptableChars = ""
 
-	// Weak characters cannot be used with other flags
+	// Weak characters can be combined with symbols, but not with character
+	// classes that overlap with the weak character pool.
 	if config.WeakChars {
-		if config.Symbols {
-			return fmt.Errorf("cannot specify weak characters with symbols")
-		}
-
 		if config.Digits || config.UpperCase || config.LowerCase {
 			return fmt.Errorf("redundant specification of characters with weak characters")
 		}

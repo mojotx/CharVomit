@@ -1,10 +1,11 @@
 package arg
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestVersion(t *testing.T) {
-	v := Version()
-	if v != CharVomitVersion {
-		t.Errorf("expected '%s', got '%s'", CharVomitVersion, v)
-	}
+	assert.Equal(t, "dev", Version())
 }

@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mojotx/CharVomit/pkg/arg"
+	"github.com/mojotx/CharVomit/v2/pkg/arg"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCharVomit_Puke(t *testing.T) {
@@ -24,19 +25,11 @@ func TestCharVomit_Puke(t *testing.T) {
 		for i := 1; i < len(s); i++ {
 			pw, err := cv.Puke(i)
 
-			if err != nil {
-				t.Errorf("iteration i=%d err=%s", i, err.Error())
-			}
-			//assert.Nilf(t, err, "iteration i=%d err=%s", i, err.Error())
-
-			if len(pw) != i {
-				t.Errorf("i=%d: len(pw) = %d", i, len(pw))
-			}
+			require.NoErrorf(t, err, "iteration i=%d", i)
+			assert.Len(t, pw, i)
 
 			for _, c := range pw {
-				if !strings.ContainsRune(s, c) {
-					t.Errorf("char %q not present in %s", c, s)
-				}
+				assert.Truef(t, strings.ContainsRune(s, c), "char %q not present in %s", c, s)
 			}
 		}
 
@@ -54,14 +47,10 @@ func TestUC(t *testing.T) {
 	cv := NewCharVomit(AllUpperCase)
 
 	pw, err := cv.Puke(99)
-	if err != nil {
-		t.Errorf("Received error upper-case puker: %s", err.Error())
-	}
+	require.NoError(t, err)
 
 	for i, c := range pw {
-		if !strings.ContainsRune(AllUpperCase, c) {
-			t.Errorf("invalid char '%c' at offset %d of string '%s'", c, i, pw)
-		}
+		assert.Truef(t, strings.ContainsRune(AllUpperCase, c), "invalid char %q at offset %d of string %q", c, i, pw)
 	}
 }
 
@@ -69,28 +58,20 @@ func TestLC(t *testing.T) {
 	cv := NewCharVomit(AllLowerCase)
 
 	pw, err := cv.Puke(99)
-	if err != nil {
-		t.Errorf("Received error lower-case puker: %s", err.Error())
-	}
+	require.NoError(t, err)
 
 	for i, c := range pw {
-		if !strings.ContainsRune(AllLowerCase, c) {
-			t.Errorf("invalid char '%c' at offset %d of string '%s'", c, i, pw)
-		}
+		assert.Truef(t, strings.ContainsRune(AllLowerCase, c), "invalid char %q at offset %d of string %q", c, i, pw)
 	}
 }
 func TestDigits(t *testing.T) {
 	cv := NewCharVomit(AllDigits)
 
 	pw, err := cv.Puke(99)
-	if err != nil {
-		t.Errorf("Received error digit puker: %s", err.Error())
-	}
+	require.NoError(t, err)
 
 	for i, c := range pw {
-		if !strings.ContainsRune(AllDigits, c) {
-			t.Errorf("invalid char '%c' at offset %d of string '%s'", c, i, pw)
-		}
+		assert.Truef(t, strings.ContainsRune(AllDigits, c), "invalid char %q at offset %d of string %q", c, i, pw)
 	}
 }
 
@@ -98,14 +79,10 @@ func TestWeakChars(t *testing.T) {
 	cv := NewCharVomit(WeakChars)
 
 	pw, err := cv.Puke(99)
-	if err != nil {
-		t.Errorf("Received error weak puker: %s", err.Error())
-	}
+	require.NoError(t, err)
 
 	for i, c := range pw {
-		if !strings.ContainsRune(WeakChars, c) {
-			t.Errorf("invalid char '%c' at offset %d of string '%s'", c, i, pw)
-		}
+		assert.Truef(t, strings.ContainsRune(WeakChars, c), "invalid char %q at offset %d of string %q", c, i, pw)
 	}
 }
 
@@ -113,14 +90,10 @@ func TestDefaults(t *testing.T) {
 	cv := NewCharVomit(DefaultChars)
 
 	pw, err := cv.Puke(99)
-	if err != nil {
-		t.Errorf("Received error default puker: %s", err.Error())
-	}
+	require.NoError(t, err)
 
 	for i, c := range pw {
-		if !strings.ContainsRune(DefaultChars, c) {
-			t.Errorf("invalid char '%c' at offset %d of string '%s'", c, i, pw)
-		}
+		assert.Truef(t, strings.ContainsRune(DefaultChars, c), "invalid char %q at offset %d of string %q", c, i, pw)
 	}
 }
 
@@ -137,23 +110,17 @@ func TestRemoveExcluded(t *testing.T) {
 	err := cv.RemoveExcluded(config)
 
 	// Check if an error occurred.
-	if err != nil {
-		t.Errorf("RemoveExcluded() returned an error: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Check if the excluded characters have been removed from AcceptableChars.
 	// cSpell:disable-next-line
 	expectedChars := "!#%+23456789:=?@ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-	if cv.AcceptableChars != expectedChars {
-		t.Errorf("RemoveExcluded() did not remove the expected characters. Expected: %s, Got: %s", expectedChars, cv.AcceptableChars)
-	}
+	assert.Equal(t, expectedChars, cv.AcceptableChars)
 
 	// Test with an empty Excluded string to ensure no error is returned.
 	config.Excluded = ""
 	err = cv.RemoveExcluded(config)
-	if err != nil {
-		t.Errorf("RemoveExcluded() returned an error when Excluded was empty: %s", err.Error())
-	}
+	require.NoError(t, err)
 
 	// Test with all characters excluded to ensure an error is returned.
 	config.Excluded = DefaultChars
@@ -211,6 +178,17 @@ func TestSetAcceptableChars(t *testing.T) {
 		}
 		err := cv.SetAcceptableChars(config)
 		assert.Error(t, err)
+	})
+
+	t.Run("Weak characters with symbols", func(t *testing.T) {
+		cv := NewCharVomit("")
+		config := arg.ConfigType{
+			WeakChars: true,
+			Symbols:   true,
+		}
+		err := cv.SetAcceptableChars(config)
+		assert.NoError(t, err)
+		assert.Equal(t, WeakChars+DefaultSymbols, cv.AcceptableChars)
 	})
 
 	t.Run("Weak characters with exclusions", func(t *testing.T) {

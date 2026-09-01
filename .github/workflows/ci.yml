@@ -1,0 +1,88 @@
+---
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+# Cancel superseded runs on the same ref (e.g. force-pushes to a PR branch).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+# Least privilege at the workflow level; jobs elevate only what they need.
+permissions: {}
+jobs:
+  test:
+    name: Build & test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
+      - name: Verify modules are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+      - name: Build
+        run: go build ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Test
+        # Test execution is skipped on macOS: every compiled test binary
+        # aborts with dyld "missing LC_UUID load command" on macos-latest
+        # runners (https://github.com/golang/go/issues/61229), reproducing
+        # with or without -race and with the build cache disabled, so it's
+        # not something under our control. `go build` above still catches
+        # macOS-specific compile issues; see README "Known CI limitations".
+        if: matrix.os != 'macos-latest'
+        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Coverage summary
+        if: always() && matrix.os != 'macos-latest'
+        run: |
+          {
+            echo "### Coverage (${{ matrix.os }})"
+            echo
+            echo '```'
+            go tool cover -func=coverage.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage artifact
+        if: always() && matrix.os != 'macos-latest'
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-${{ matrix.os }}
+          path: coverage.out
+          if-no-files-found: error
+          retention-days: 14
+  lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
