@@ -124,7 +124,7 @@ func ParseArgs(args []string, fs *flag.FlagSet) (cfg ConfigType, exitAfter bool,
 	resetFlagSetDefaults(fs)
 
 	if err := fs.Parse(args); err != nil {
-		_, _ = fmt.Fprintf(output, "cannot parse os.Args[1:]: %s\n", err.Error())
+		_, _ = fmt.Fprintf(output, "cannot parse args: %s\n", err.Error())
 		cfg = Config
 		return cfg, true, 1
 	}

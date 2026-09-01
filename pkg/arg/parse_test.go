@@ -276,6 +276,21 @@ func TestParseArgsReturnsValuesFromProvidedFlagSet(t *testing.T) {
 	assert.Equal(t, Config, cfg)
 }
 
+func TestParseArgsReportsCustomArgs(t *testing.T) {
+	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
+	cfg := ConfigType{}
+	RegisterFlags(fs, &cfg)
+
+	var buf bytes.Buffer
+	fs.SetOutput(&buf)
+
+	_, exitAfter, rc := ParseArgs([]string{"--bad-flag"}, fs)
+
+	assert.True(t, exitAfter)
+	assert.Equal(t, 1, rc)
+	assert.Contains(t, buf.String(), "cannot parse args")
+}
+
 func TestParseHelp(t *testing.T) {
 	// Save the original command-line arguments and restore them after the test.
 	oldArgs := os.Args
