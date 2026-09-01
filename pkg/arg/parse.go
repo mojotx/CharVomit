@@ -15,6 +15,8 @@ type ConfigType struct {
 	Symbols     bool
 	UpperCase   bool
 	WeakChars   bool
+	Stdout      bool
+	OutputFile  string
 	Version     bool
 	Excluded    string
 }
@@ -22,10 +24,12 @@ type ConfigType struct {
 var Config ConfigType
 
 func Usage() {
-
 	out := flag.CommandLine.Output()
 	_, _ = fmt.Fprintf(out, "Usage: %s [ length ]\n\n", os.Args[0])
-	_, _ = fmt.Fprintf(out, "If a password length is not specified, 32 is used.\n\n")
+	_, _ = fmt.Fprintf(out, "If a password length is not specified, 32 is used.\n")
+	_, _ = fmt.Fprintln(out, "With no character flags, the default pool is equivalent to -w -s: weak, non-ambiguous characters plus symbols.")
+	_, _ = fmt.Fprintln(out, "The -d flag is redundant with -w because the weak pool already contains the non-ambiguous digits.")
+	_, _ = fmt.Fprintln(out)
 	_, _ = fmt.Fprintf(out, "Other optional flags are:\n")
 
 	flag.PrintDefaults()
@@ -37,7 +41,6 @@ func Usage() {
 	_, _ = fmt.Fprintln(out, "Also note that certain characters that are confusing are ignored by default,")
 	_, _ = fmt.Fprintln(out, "such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,")
 	_, _ = fmt.Fprintln(out, "by using the -u, -l, and -d flags. The default is equivalent to -w -s.")
-
 }
 
 // makeUsageFunc creates a usage function for the given FlagSet
@@ -45,7 +48,10 @@ func makeUsageFunc(fs *flag.FlagSet) func() {
 	return func() {
 		out := fs.Output()
 		_, _ = fmt.Fprintf(out, "Usage: %s [ length ]\n\n", os.Args[0])
-		_, _ = fmt.Fprintf(out, "If a password length is not specified, 32 is used.\n\n")
+		_, _ = fmt.Fprintf(out, "If a password length is not specified, 32 is used.\n")
+		_, _ = fmt.Fprintln(out, "With no character flags, the default pool is equivalent to -w -s: weak, non-ambiguous characters plus symbols.")
+		_, _ = fmt.Fprintln(out, "The -d flag is redundant with -w because the weak pool already contains the non-ambiguous digits.")
+		_, _ = fmt.Fprintln(out)
 		_, _ = fmt.Fprintf(out, "Other optional flags are:\n")
 
 		fs.PrintDefaults()
@@ -69,7 +75,7 @@ func RegisterFlags(fs *flag.FlagSet, cfg *ConfigType) {
 	fs.BoolVar(&cfg.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
 	fs.BoolVar(&cfg.ShowHelp, "h", false, "show help and exit")
 	fs.BoolVar(&cfg.Version, "v", false, "show version")
-	fs.StringVar(&cfg.Excluded, "x", "", "excluded characters (will be removed)")
+	fs.StringVar(&cfg.Excluded, "x", "", "excluded characters (will be removed from char pool)")
 }
 
 func resetFlagSetDefaults(fs *flag.FlagSet) {

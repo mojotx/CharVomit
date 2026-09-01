@@ -14,29 +14,39 @@ hence the name.
 ## Usage
 
 ```shell
-Usage: CharVomit [ length ]
+Usage: CharVomit [ length ] [flags]
 
-If a password length is not specified, 32 is used.
+If a password length is not specified, 32 is used. With no character flags,
+the default is equivalent to `CharVomit 32 -w -s`: weak, non-ambiguous
+characters plus symbols. The `-d` flag is redundant with `-w` because the weak
+pool already contains the non-ambiguous digits.
 
 Other optional flags are:
-  -d use numeric digits
-  -h show help and exit
-  -l use lower-case letters
-  -s use symbols: !#%+:=?@
-  -u use upper-case letters
-  -v show version
-  -w use weak characters (2-9, A-N, P-Z, a-k, m-z)
-  -x string
-    excluded characters (will be removed)
+    -d, --digits           use numeric digits
+    -h, --help             show help and exit
+    -l, --lowercase        use lower-case letters
+    -o, --output-file      write the generated password to a file instead of stdout
+    -s, --symbols          use symbols: !#%+:=?@
+    -u, --uppercase        use upper-case letters
+    -v, --version          show version
+    -w, --weak             use weak characters (2-9, A-N, P-Z, a-k, m-z)
+    -x, --exclude string   excluded characters (will be removed)
 
 Note that optional flags must precede the password length.
+
+By default, CharVomit writes the generated password to standard output. To
+avoid exposing the password in terminal scrollback or shell history, prefer
+--output-file / -o and write it to a secure local file.
 
 For example, a 8-character password of all capital letters:
 CharVomit -u 8
 
+Write to a file instead of the terminal:
+CharVomit --output-file /path/to/password.txt 20
+
 Also note that certain characters that are confusing are ignored by default,
 such as '0', 'O', '1', and 'l'. You can still get those characters, if you wish,
-by using the -u, -l, and -d flags. The default is equivalent to -w -s.
+by using the -u, -l, and -d flags. The default is equivalent to `CharVomit 32 -w -s`.
 
 ```
 
