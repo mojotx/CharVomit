@@ -45,9 +45,12 @@ jobs:
         # -ld_classic works around a Go/Xcode linker bug that omits LC_UUID
         # from race-instrumented binaries on macOS runners, causing dyld to
         # abort at test-run time (https://github.com/golang/go/issues/61229).
+        # It must be passed via -extldflags: -race forces external linking
+        # (to pull in the TSan runtime), and CGO_LDFLAGS isn't consulted
+        # at that stage.
         env:
-          CGO_LDFLAGS: ${{ matrix.os == 'macos-latest' && '-Wl,-ld_classic' || '' }}
-        run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+          GO_RACE_LDFLAGS: ${{ matrix.os == 'macos-latest' && '-ldflags=-extldflags=-Wl,-ld_classic' || '' }}
+        run: go test -race $GO_RACE_LDFLAGS -covermode=atomic -coverprofile=coverage.out ./...
       - name: Coverage summary
         if: always()
         run: |
