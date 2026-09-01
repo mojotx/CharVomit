@@ -101,7 +101,7 @@ Xl!bXDnZC@srbxBDNzdj
 
 ## Known CI limitations
 
-* **2026-09-01**: `-race` is disabled for the macOS job in [ci.yml](.github/workflows/ci.yml) because GitHub's `macos-latest` runner image ships an Xcode/linker version that omits `LC_UUID` from race-instrumented test binaries, causing `dyld` to abort (https://github.com/golang/go/issues/61229). This isn't reproducible on a current local machine, only on the runner's pinned (older) toolchain. Worth revisiting periodically: once GitHub bumps `macos-latest` past the affected Xcode version, `-race` can likely be re-enabled for macOS in ci.yml.
+* **2026-09-01**: The macOS job in [ci.yml](.github/workflows/ci.yml) has been failing test *execution* with `dyld: missing LC_UUID load command` (https://github.com/golang/go/issues/61229). Originally suspected to be race-detector/external-linking specific, but it reproduces even with `-race` removed, so the cause is broader than that — not reproducible on a current local machine, only on the `macos-latest` runner. `-race` stays disabled there for now, and the runner's Go build cache has been turned off as the next diagnostic attempt (suspected stale/corrupt cache producing a malformed binary). Revisit once this is root-caused or GitHub updates the runner image: re-enable the cache and `-race` for macOS in ci.yml if the underlying issue is gone.
 
 ## Installation
 

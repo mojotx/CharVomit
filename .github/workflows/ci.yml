@@ -32,7 +32,10 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-          cache: true
+          # Cache disabled on macOS: a suspected stale/corrupt build cache is
+          # one candidate for the "missing LC_UUID" dyld abort seen there
+          # even without -race (see README "Known CI limitations").
+          cache: ${{ matrix.os != 'macos-latest' }}
       - name: Verify modules are tidy
         run: |
           go mod tidy
