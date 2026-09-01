@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -41,42 +40,22 @@ func init() {
 	rootCmd.Flags().StringP("exclude", "x", "", "excluded characters (will be removed)")
 }
 
+// resolveConfig parses the optional positional password length. rootCmd's
+// Args: cobra.MaximumNArgs(1) already guarantees len(args) <= 1 here.
 func resolveConfig(args []string) (arg.ConfigType, error) {
-	cfg := arg.ConfigType{}
-	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
-	fs.SetOutput(io.Discard)
-
-	fs.StringVar(&cfg.OutputFile, "output-file", "", "write the generated password to a file instead of stdout")
-	fs.StringVar(&cfg.OutputFile, "o", "", "write the generated password to a file instead of stdout")
-	fs.BoolVar(&cfg.Digits, "d", false, "use numeric digits")
-	fs.BoolVar(&cfg.LowerCase, "l", false, "use lower-case letters")
-	fs.BoolVar(&cfg.UpperCase, "u", false, "use upper-case letters")
-	fs.BoolVar(&cfg.Symbols, "s", false, "use symbols: !#%+:=?@")
-	fs.BoolVar(&cfg.Symbols, "symbols", false, "use symbols: !#%+:=?@")
-	fs.BoolVar(&cfg.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
-	fs.StringVar(&cfg.Excluded, "x", "", "excluded characters (will be removed)")
-	fs.BoolVar(&cfg.ShowHelp, "h", false, "show help and exit")
-	fs.BoolVar(&cfg.Version, "v", false, "show version")
-
-	if err := fs.Parse(args); err != nil {
-		return cfg, err
+	cfg := arg.ConfigType{PasswordLen: 32}
+	if len(args) == 0 {
+		return cfg, nil
 	}
 
-	if fs.NArg() > 1 {
-		return cfg, fmt.Errorf("too many arguments: expected at most 1 positional length, got %d", fs.NArg())
+	parsedLen, err := strconv.Atoi(args[0])
+	if err != nil {
+		return cfg, fmt.Errorf("cannot parse argument '%s': %w", args[0], err)
 	}
 
-	cfg.PasswordLen = 32
-	if fs.NArg() == 1 {
-		parsedLen, err := strconv.Atoi(fs.Arg(0))
-		if err != nil {
-			return cfg, fmt.Errorf("cannot parse argument '%s': %w", fs.Arg(0), err)
-		}
-
-		cfg.PasswordLen = parsedLen
-		if cfg.PasswordLen < 0 {
-			cfg.PasswordLen *= -1
-		}
+	cfg.PasswordLen = parsedLen
+	if cfg.PasswordLen < 0 {
+		cfg.PasswordLen *= -1
 	}
 
 	return cfg, nil
@@ -143,12 +122,8 @@ func writePassword(password, outputFile string, output io.Writer) error {
 		return file.Close()
 	}
 
-	if outputFile == "" {
-		_, err := fmt.Fprintln(output, password)
-		return err
-	}
-
-	return nil
+	_, err := fmt.Fprintln(output, password)
+	return err
 }
 
 func run(cfg arg.ConfigType) error {

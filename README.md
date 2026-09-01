@@ -52,14 +52,10 @@ by using the -u, -l, and -d flags. The default is equivalent to `CharVomit 32 -w
 
 ## Library usage
 
-If you want to use the package from Go code instead of the CLI, prefer parsing a local config value rather than relying on the package-global state.
+If you want to use the package from Go code instead of the CLI, prefer building a local `arg.ConfigType` value rather than relying on package-global state.
 
 ```go
-fs := flag.NewFlagSet("example", flag.ContinueOnError)
-config, exitAfter, rc := arg.ParseArgs(os.Args[1:], fs)
-if exitAfter {
-    os.Exit(rc)
-}
+config := arg.ConfigType{WeakChars: true, Symbols: true}
 
 cv := CharVomit.NewCharVomit("")
 if err := cv.SetAcceptableChars(config); err != nil {

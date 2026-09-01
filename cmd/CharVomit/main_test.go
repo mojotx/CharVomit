@@ -38,8 +38,14 @@ func TestResolveConfigUses32CharacterDefault(t *testing.T) {
 	assert.False(t, strings.ContainsAny(cv.AcceptableChars, "0O1l"))
 }
 
-func TestResolveConfigAcceptsSymbolsAlias(t *testing.T) {
-	cfg, err := resolveConfig([]string{"-s", "-u", "12"})
+func TestResolveCommandConfigAcceptsSymbolsAlias(t *testing.T) {
+	require.NoError(t, rootCmd.ParseFlags([]string{"-s", "-u"}))
+	t.Cleanup(func() {
+		require.NoError(t, rootCmd.Flags().Set("symbols", "false"))
+		require.NoError(t, rootCmd.Flags().Set("uppercase", "false"))
+	})
+
+	cfg, err := resolveCommandConfig(rootCmd, []string{"12"})
 	require.NoError(t, err)
 
 	assert.Equal(t, 12, cfg.PasswordLen)
