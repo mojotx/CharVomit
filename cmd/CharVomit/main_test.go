@@ -18,8 +18,8 @@ func TestResolveConfigUses32CharacterDefault(t *testing.T) {
 	if cfg.PasswordLen != 32 {
 		t.Fatalf("expected default password length 32, got %d", cfg.PasswordLen)
 	}
-	if !cfg.WeakChars || !cfg.Symbols {
-		t.Fatalf("expected default flags to be equivalent to -w -s, got %+v", cfg)
+	if cfg.WeakChars || cfg.Symbols {
+		t.Fatalf("expected no character class flags by default, got %+v", cfg)
 	}
 
 	var cv CharVomit.CharVomit
@@ -27,7 +27,7 @@ func TestResolveConfigUses32CharacterDefault(t *testing.T) {
 		t.Fatalf("unexpected error setting default characters: %v", err)
 	}
 
-	expectedPool := CharVomit.WeakChars + CharVomit.DefaultSymbols
+	expectedPool := CharVomit.DefaultChars
 	if cv.AcceptableChars != expectedPool {
 		t.Fatalf("expected default character pool %q, got %q", expectedPool, cv.AcceptableChars)
 	}

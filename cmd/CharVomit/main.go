@@ -34,16 +34,13 @@ func init() {
 	rootCmd.Flags().BoolP("digits", "d", false, "use numeric digits")
 	rootCmd.Flags().BoolP("lowercase", "l", false, "use lower-case letters")
 	rootCmd.Flags().BoolP("uppercase", "u", false, "use upper-case letters")
-	rootCmd.Flags().BoolP("symbols", "s", true, "use symbols: !#%+:=?@")
-	rootCmd.Flags().BoolP("weak", "w", true, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
+	rootCmd.Flags().BoolP("symbols", "s", false, "use symbols: !#%+:=?@")
+	rootCmd.Flags().BoolP("weak", "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
 	rootCmd.Flags().StringP("exclude", "x", "", "excluded characters (will be removed)")
 }
 
 func resolveConfig(args []string) (arg.ConfigType, error) {
-	cfg := arg.ConfigType{
-		Symbols:   true,
-		WeakChars: true,
-	}
+	cfg := arg.ConfigType{}
 	fs := flag.NewFlagSet("CharVomit", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 
@@ -52,9 +49,9 @@ func resolveConfig(args []string) (arg.ConfigType, error) {
 	fs.BoolVar(&cfg.Digits, "d", false, "use numeric digits")
 	fs.BoolVar(&cfg.LowerCase, "l", false, "use lower-case letters")
 	fs.BoolVar(&cfg.UpperCase, "u", false, "use upper-case letters")
-	fs.BoolVar(&cfg.Symbols, "s", true, "use symbols: !#%+:=?@")
-	fs.BoolVar(&cfg.Symbols, "symbols", true, "use symbols: !#%+:=?@")
-	fs.BoolVar(&cfg.WeakChars, "w", true, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
+	fs.BoolVar(&cfg.Symbols, "s", false, "use symbols: !#%+:=?@")
+	fs.BoolVar(&cfg.Symbols, "symbols", false, "use symbols: !#%+:=?@")
+	fs.BoolVar(&cfg.WeakChars, "w", false, "use weak characters (2-9, A-N, P-Z, a-k, m-z)")
 	fs.StringVar(&cfg.Excluded, "x", "", "excluded characters (will be removed)")
 	fs.BoolVar(&cfg.ShowHelp, "h", false, "show help and exit")
 	fs.BoolVar(&cfg.Version, "v", false, "show version")
